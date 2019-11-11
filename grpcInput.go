@@ -566,8 +566,21 @@ func singleSubscription(
 				}).Error("Server terminated subscription")
 				return
 			}
-			getRsp := reply.GetResponse()
-			fmt.Printf("Subscribe Response : %#v \n", &getRsp)
+			//getRsp := reply.GetResponse()
+			//fmt.Printf("Subscribe Response : %#v \n", getRsp)
+
+			response, ok := reply.Response.(*pb.SubscribeResponse_Update)
+			if !ok {
+				return
+			}
+			//var prefix, prefixAliasPath string
+			timestamp := time.Unix(0, response.Update.Timestamp)
+			fmt.Printf("Timestamp : %#v \n", timestamp)
+			fmt.Printf("prefix : %#v \n", response.Update.Prefix)
+
+			for _, update := range response.Update.Update {
+				fmt.Printf("Update : %#v \n", update)
+			}
 
 			/*
 
