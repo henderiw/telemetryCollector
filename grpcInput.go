@@ -345,7 +345,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	var wg sync.WaitGroup
 	for _, sub := range s.subscriptions {
 		pbPath, err := xpath.ToGNMIPath(sub)
-		fmt.Printf("pbPath : %#v \n", pbPath)
+		fmt.Printf("pbPath : %#v \n", &pbPath)
 		if err != nil {
 			tcLogCtxt.WithError(err).WithFields(
 				log.Fields{
@@ -366,7 +366,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			//SuppressRedundant: subscription.SuppressRedundant,
 			//HeartbeatInterval: uint64(subscription.HeartbeatInterval.Duration.Nanoseconds()),
 		}
-		fmt.Printf("subscriptions : %#v \n", subscriptions)
+		fmt.Printf("subscriptions : %#v \n", &subscriptions)
 
 		sl := pb.SubscriptionList{
 			Prefix:           pbPath,
@@ -567,7 +567,7 @@ func singleSubscription(
 				return
 			}
 			getRsp := reply.GetResponse()
-			fmt.Printf("Subscribe Response : %#v \n", getRsp)
+			fmt.Printf("Subscribe Response : %#v \n", &getRsp)
 
 			/*
 
