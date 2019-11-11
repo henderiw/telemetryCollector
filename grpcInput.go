@@ -344,6 +344,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	var wg sync.WaitGroup
 	for _, sub := range s.subscriptions {
 		pbPath, err := xpath.ToGNMIPath(sub)
+		fmt.Printf("pbPath : %#v \n", pbPath)
 		if err != nil {
 			tcLogCtxt.WithError(err).WithFields(
 				log.Fields{
@@ -358,12 +359,13 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 		subscriptions := make([]*pb.Subscription, 1)
 		subscriptions[0] = &pb.Subscription{
-			Path:           pbPath,
+			//Path:           pbPath,
 			Mode:           pb.SubscriptionMode_SAMPLE,
 			SampleInterval: 60000000,
 			//SuppressRedundant: subscription.SuppressRedundant,
 			//HeartbeatInterval: uint64(subscription.HeartbeatInterval.Duration.Nanoseconds()),
 		}
+		fmt.Printf("subscriptions : %#v \n", subscriptions)
 
 		sl := pb.SubscriptionList{
 			Prefix:           pbPath,
