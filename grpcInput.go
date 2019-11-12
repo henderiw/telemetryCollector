@@ -624,8 +624,17 @@ func singleSubscription(
 }
 
 func joinPath(path *pb.Path) string {
-	fmt.Printf("path.Element : %s \n", path.Element)
-	return strings.Join(path.Element, "/")
+	var xpath []string
+	for i := 0; i <= len(path.Elem); i++ {
+		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
+		if path.Elem[0].Key != nil {
+			fmt.Printf("Elem Name Key [Key] : %d : %s \n", i, path.Elem[i].Key["Key"])
+			fmt.Printf("Elem Name Key [Key] : %d : %s \n", i, path.Elem[i].Key["Value"])
+		}
+		xpath = append(xpath, path.Elem[i].Name)
+	}
+	fmt.Printf("Xpath : %s", xpath)
+	return strings.Join(xpath, "/")
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
