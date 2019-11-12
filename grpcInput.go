@@ -624,10 +624,12 @@ func singleSubscription(
 }
 
 func joinPath(path *pb.Path) string {
+	fmt.Printf("path.Element : %s \n", path.Element)
 	return strings.Join(path.Element, "/")
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
+	fmt.Printf("update.Value.Type : %s \n", update.Value.Type)
 	switch update.Value.Type {
 	case pb.Encoding_JSON:
 		var value interface{}
