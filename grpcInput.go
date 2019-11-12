@@ -642,7 +642,7 @@ func joinPath(path *pb.Path) string {
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	fmt.Printf("update.Value.Type : %s \n", update.Value.GetType())
+	fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
 		var value interface{}
@@ -657,7 +657,7 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 		return strconv.Quote(string(update.Value.Value)), nil
 	default:
 		return nil,
-			fmt.Errorf("Unhandled type of value %v in %s", update.Value.Type, update)
+			fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
 	}
 }
 
