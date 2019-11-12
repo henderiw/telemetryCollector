@@ -675,15 +675,19 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		fmt.Printf("Path : %s \n", m["path"])
 		if len(notif.Update) != 0 {
 			fmt.Printf("notif.Update length : %d \n", len(notif.Update))
-			updates := make(map[string]interface{}, len(notif.Update))
+			//updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
 				fmt.Printf("Update : %#v \n", update)
-				updates[joinPath(update.Path)], err = convertUpdate(update)
+				//updates[joinPath(update.Path)], err = convertUpdate(update)
+
+				fmt.Printf("Update path : %s", joinPath(update.Path))
+				c, err := convertUpdate(update)
 				if err != nil {
 					return "", err
 				}
+				fmt.Printf("Update path : %s", c)
 			}
-			m["updates"] = updates
+			//m["updates"] = updates
 		}
 		if len(notif.Delete) != 0 {
 			deletes := make([]string, len(notif.Delete))
