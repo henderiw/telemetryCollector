@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -536,8 +538,9 @@ func singleSubscription(
 		}).Info("Subscription handler running")
 
 	for {
-		reply, err := thisStream.Recv()
-		utils.PrintProto(reply)
+		subscribeRsp, err := thisStream.Recv()
+		utils.PrintProto(subscribeRsp)
+
 		select {
 		case <-thisCtx.Done():
 			count := 0
@@ -564,25 +567,22 @@ func singleSubscription(
 					"function":     "singleSubscription",
 					"subscription": thisSub,
 					"reqID":        thisReqID,
-					"report":       reply.GetError(),
+					"report":       subscribeRsp.GetError(),
 				}).Error("Server terminated subscription")
 				return
 			}
-			//getRsp := reply.GetResponse()
-			//fmt.Printf("Subscribe Response : %#v \n", getRsp)
 
-			response, ok := reply.Response.(*pb.SubscribeResponse_Update)
+			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
+			fmt.Printf("subRspJSON: %s", subRspJSON)
+
+			response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
 			if !ok {
 				return
 			}
-			//var prefix, prefixAliasPath string
+			fmt.Printf("response : %s \n", response)
+
 			timestamp := time.Unix(0, response.Update.Timestamp)
 			fmt.Printf("Timestamp : %s \n", timestamp)
-			//fmt.Printf("prefix : %#v \n", response.Update.Prefix)
-
-			//for _, update := range response.Update.Update {
-			//	fmt.Printf("Update : %#v \n", update)
-			//}
 
 			/*
 
@@ -621,4 +621,66 @@ func singleSubscription(
 			*/
 		}
 	}
+}
+
+func joinPath(path *pb.Path) string {
+	return strings.Join(path.Element, "/")
+}
+
+func convertUpdate(update *pb.Update) (interface{}, error) {
+	switch update.Value.Type {
+	case pb.Encoding_JSON:
+		var value interface{}
+		decoder := json.NewDecoder(bytes.NewReader(update.Value.Value))
+		decoder.UseNumber()
+		if err := decoder.Decode(&value); err != nil {
+			return nil, fmt.Errorf("Malformed JSON update %q in %s",
+				update.Value.Value, update)
+		}
+		return value, nil
+	case pb.Encoding_BYTES:
+		return strconv.Quote(string(update.Value.Value)), nil
+	default:
+		return nil,
+			fmt.Errorf("Unhandled type of value %v in %s", update.Value.Type, update)
+	}
+}
+
+// subscribeResponseToJSON converts a SubscribeResponse into a JSON string
+func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
+	m := make(map[string]interface{}, 1)
+	var err error
+	switch resp := resp.Response.(type) {
+	case *pb.SubscribeResponse_Update:
+		notif := resp.Update
+		m["timestamp"] = notif.Timestamp
+		m["path"] = "/" + joinPath(notif.Prefix)
+		if len(notif.Update) != 0 {
+			updates := make(map[string]interface{}, len(notif.Update))
+			for _, update := range notif.Update {
+				updates[joinPath(update.Path)], err = convertUpdate(update)
+				if err != nil {
+					return "", err
+				}
+			}
+			m["updates"] = updates
+		}
+		if len(notif.Delete) != 0 {
+			deletes := make([]string, len(notif.Delete))
+			for i, del := range notif.Delete {
+				deletes[i] = joinPath(del)
+			}
+			m["deletes"] = deletes
+		}
+		m = map[string]interface{}{"notification": m}
+	case *pb.SubscribeResponse_SyncResponse:
+		m["syncResponse"] = resp.SyncResponse
+	default:
+		return "", fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
+	}
+	js, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(js), nil
 }
