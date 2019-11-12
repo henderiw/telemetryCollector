@@ -642,8 +642,8 @@ func joinPath(path *pb.Path) string {
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	fmt.Printf("update.Value.Type : %s \n", update.Value.Type)
-	switch update.Value.Type {
+	fmt.Printf("update.Value.Type : %s \n", update.Value.GetType())
+	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
 		var value interface{}
 		decoder := json.NewDecoder(bytes.NewReader(update.Value.Value))
@@ -677,15 +677,16 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 			fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 			//updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Printf("Update : %#v \n", update)
+				fmt.Printf("Update : %s \n", update)
 				//updates[joinPath(update.Path)], err = convertUpdate(update)
 
-				fmt.Printf("Update path : %s", joinPath(update.Path))
+				fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				fmt.Println("##############################################")
 				c, err := convertUpdate(update)
 				if err != nil {
 					return "", err
 				}
-				fmt.Printf("Update path : %s", c)
+				fmt.Printf("Update path : %s \n", c)
 			}
 			//m["updates"] = updates
 		}
