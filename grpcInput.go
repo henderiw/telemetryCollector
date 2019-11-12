@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
@@ -536,6 +537,7 @@ func singleSubscription(
 
 	for {
 		reply, err := thisStream.Recv()
+		utils.PrintProto(reply)
 		select {
 		case <-thisCtx.Done():
 			count := 0
@@ -575,12 +577,12 @@ func singleSubscription(
 			}
 			//var prefix, prefixAliasPath string
 			timestamp := time.Unix(0, response.Update.Timestamp)
-			fmt.Printf("Timestamp : %#v \n", timestamp)
-			fmt.Printf("prefix : %#v \n", response.Update.Prefix)
+			fmt.Printf("Timestamp : %s \n", timestamp)
+			//fmt.Printf("prefix : %#v \n", response.Update.Prefix)
 
-			for _, update := range response.Update.Update {
-				fmt.Printf("Update : %#v \n", update)
-			}
+			//for _, update := range response.Update.Update {
+			//	fmt.Printf("Update : %#v \n", update)
+			//}
 
 			/*
 
