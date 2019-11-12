@@ -628,12 +628,14 @@ func joinPath(path *pb.Path) string {
 	fmt.Printf("Path Elem length: %d \n", len(path.Elem))
 	for i := 0; i < len(path.Elem); i++ {
 		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
+		elementString := path.Elem[i].Name
 		if path.Elem[i].Key != nil {
+			for k, v := range path.Elem[i].Key {
+				elementString += "[" + k + "=" + v + "]"
+			}
 			fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
-			fmt.Printf("Elem Name Key [key] : %d : %s \n", i, path.Elem[i].Key["key"])
-			fmt.Printf("Elem Name Key [Value] : %d : %s \n", i, path.Elem[i].Key["value"])
 		}
-		xpath = append(xpath, path.Elem[i].Name)
+		xpath = append(xpath, elementString)
 	}
 	fmt.Printf("Xpath : %s \n", xpath)
 	return strings.Join(xpath, "/")
