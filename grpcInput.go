@@ -652,12 +652,17 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 	var err error
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
+		fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
+		fmt.Printf("timestamp : %s \n", m["timestamp"])
 		m["path"] = "/" + joinPath(notif.Prefix)
+		fmt.Printf("Path : %s \n", m["path"])
 		if len(notif.Update) != 0 {
+			fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
+				fmt.Printf("Update : %s \n", update)
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 				if err != nil {
 					return "", err
@@ -674,8 +679,10 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		}
 		m = map[string]interface{}{"notification": m}
 	case *pb.SubscribeResponse_SyncResponse:
+		fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
 	default:
+		fmt.Printf("Response type: %#v \n", resp)
 		return "", fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
 	js, err := json.MarshalIndent(m, "", "  ")
