@@ -629,8 +629,8 @@ func joinPath(path *pb.Path) string {
 	for i := 0; i < len(path.Elem); i++ {
 		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		if path.Elem[i].Key != nil {
-			fmt.Printf("Elem Name Key [Key] : %d : %s \n", i, path.Elem[i].Key["Key"])
-			fmt.Printf("Elem Name Key [Key] : %d : %s \n", i, path.Elem[i].Key["Value"])
+			fmt.Printf("Elem Name Key [key] : %d : %s \n", i, path.Elem[i].Key["key"])
+			fmt.Printf("Elem Name Key [Value] : %d : %s \n", i, path.Elem[i].Key["value"])
 		}
 		xpath = append(xpath, path.Elem[i].Name)
 	}
