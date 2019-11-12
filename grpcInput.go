@@ -625,16 +625,17 @@ func singleSubscription(
 
 func joinPath(path *pb.Path) string {
 	var xpath []string
-	fmt.Printf("Path Elem length: %d", len(path.Elem))
+	fmt.Printf("Path Elem length: %d \n", len(path.Elem))
 	for i := 0; i < len(path.Elem); i++ {
 		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		if path.Elem[i].Key != nil {
+			fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
 			fmt.Printf("Elem Name Key [key] : %d : %s \n", i, path.Elem[i].Key["key"])
 			fmt.Printf("Elem Name Key [Value] : %d : %s \n", i, path.Elem[i].Key["value"])
 		}
 		xpath = append(xpath, path.Elem[i].Name)
 	}
-	fmt.Printf("Xpath : %s", xpath)
+	fmt.Printf("Xpath : %s \n", xpath)
 	return strings.Join(xpath, "/")
 }
 
