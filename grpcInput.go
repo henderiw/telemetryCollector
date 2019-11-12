@@ -662,7 +662,7 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 			fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Printf("Update : %s \n", update)
+				fmt.Printf("Update : %#v \n", update)
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 				if err != nil {
 					return "", err
