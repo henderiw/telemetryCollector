@@ -646,15 +646,15 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
 		var value interface{}
-		decoder := json.NewDecoder(bytes.NewReader(update.Value.Value))
+		decoder := json.NewDecoder(bytes.NewReader(update.Value.GetValue()))
 		decoder.UseNumber()
 		if err := decoder.Decode(&value); err != nil {
 			return nil, fmt.Errorf("Malformed JSON update %q in %s",
-				update.Value.Value, update)
+				update.Value.GetValue(), update)
 		}
 		return value, nil
 	case pb.Encoding_BYTES:
-		return strconv.Quote(string(update.Value.Value)), nil
+		return strconv.Quote(string(update.Value.GetValue())), nil
 	default:
 		return nil,
 			fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
