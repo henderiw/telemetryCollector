@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
@@ -539,7 +538,7 @@ func singleSubscription(
 
 	for {
 		subscribeRsp, err := thisStream.Recv()
-		utils.PrintProto(subscribeRsp)
+		//utils.PrintProto(subscribeRsp)
 
 		select {
 		case <-thisCtx.Done():
