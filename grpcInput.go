@@ -291,19 +291,21 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	}
 
-	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-		Username:   s.username,
-		Password:   s.password,
-		RequireTLS: s.tls}))
+	/*
+		opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
+			Username:   s.username,
+			Password:   s.password,
+			RequireTLS: s.tls}))
+	*/
 
 	// Add gRPC overall timeout to the config options array.
 	//ctx, _ = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
 	ctx, s.cancel = context.WithCancel(context.Background())
 	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
 
-	//fmt.Printf("Ctxt : %#v \n", ctx)
+	fmt.Printf("Ctxt : %#v \n", ctx)
 	fmt.Printf("Server : %#v \n", s.server)
-	//fmt.Printf("Opts : %#v \n", opts)
+	fmt.Printf("Opts : %#v \n", opts)
 	fmt.Printf("Username : %#v \n", s.username)
 	fmt.Printf("Password : %#v \n", s.password)
 	fmt.Printf("TLS : %#v \n", s.tls)
