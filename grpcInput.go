@@ -17,7 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -291,17 +290,15 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	}
 
-	/*
-		opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-			Username:   s.username,
-			Password:   s.password,
-			RequireTLS: s.tls}))
-	*/
+	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
+		Username:   s.username,
+		Password:   s.password,
+		RequireTLS: s.tls}))
 
 	// Add gRPC overall timeout to the config options array.
 	//ctx, _ = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
 	ctx, s.cancel = context.WithCancel(context.Background())
-	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
+	//ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
 
 	fmt.Printf("Ctxt : %#v \n", ctx)
 	fmt.Printf("Server : %#v \n", s.server)
