@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
@@ -395,7 +394,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	codecType := s.encap
 
 	var pbPathList []*pb.Path
-	var pbModelDataList []*pb.ModelData
+	//var pbModelDataList []*pb.ModelData
 	for _, xPath := range s.subscriptions {
 		pbPath, err := xpath.ToGNMIPath(xPath)
 		if err != nil {
@@ -405,22 +404,24 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		}
 		pbPathList = append(pbPathList, pbPath)
 	}
-	getRequest := &pb.GetRequest{
-		Encoding:  pb.Encoding(encoding),
-		Path:      pbPathList,
-		UseModels: pbModelDataList,
-	}
+	/*
+		getRequest := &pb.GetRequest{
+			Encoding:  pb.Encoding(encoding),
+			Path:      pbPathList,
+			UseModels: pbModelDataList,
+		}
 
-	fmt.Println("== getRequest:")
-	utils.PrintProto(getRequest)
+		fmt.Println("== getRequest:")
+		utils.PrintProto(getRequest)
 
-	getResponse, err := client.Get(ctx, getRequest)
-	if err != nil {
-		tcLogCtxt.WithError(err).Error("Get failed")
-	}
+		getResponse, err := client.Get(ctx, getRequest)
+		if err != nil {
+			tcLogCtxt.WithError(err).Error("Get failed")
+		}
 
-	fmt.Println("== getResponse:")
-	utils.PrintProto(getResponse)
+		fmt.Println("== getResponse:")
+		utils.PrintProto(getResponse)
+	*/
 
 	var wg sync.WaitGroup
 	for _, sub := range s.subscriptions {
