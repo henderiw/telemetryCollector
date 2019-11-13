@@ -635,7 +635,7 @@ func joinPath(path *pb.Path) string {
 			for k, v := range path.Elem[i].Key {
 				elementString += "[" + k + "=" + v + "]"
 			}
-			fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
+			//fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
 		}
 		xpath = append(xpath, elementString)
 	}
@@ -695,7 +695,7 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 				}
 				//fmt.Printf("Update path : %s \n", c)
 			}
-			//m["updates"] = updates
+			m["updates"] = updates
 		}
 		if len(notif.Delete) != 0 {
 			deletes := make([]string, len(notif.Delete))
