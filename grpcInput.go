@@ -29,7 +29,7 @@ const (
 	xportGrpcWaitToRedial = 1
 	grpcTimeout           = 10000
 	grpcEncodeJSON        = 4
-	sampleInterval        = 10000000000
+	sampleInterval        = 5000000000
 )
 
 type encoding int
@@ -443,7 +443,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 		subscriptions := make([]*pb.Subscription, 1)
 		subscriptions[0] = &pb.Subscription{
-			Path:           pbPath,
+			//Path:           pbPath,
 			Mode:           pb.SubscriptionMode_SAMPLE,
 			SampleInterval: sampleInterval,
 			//SuppressRedundant: subscription.SuppressRedundant,
