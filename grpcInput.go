@@ -20,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 	// "google.golang.org/grpc/metadata"
 )
 
@@ -342,12 +343,6 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			RequireTLS: s.tls}))
 	}
 
-	// Add gRPC overall timeout to the config options array.
-	//ctx, _ = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
-
-	//ctx, s.cancel = context.WithCancel(context.Background())
-	//ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
-
 	fmt.Printf("Ctxt : %#v \n", ctx)
 	fmt.Printf("Server : %#v \n", s.server)
 	fmt.Printf("Opts : %#v \n", opts)
@@ -370,8 +365,14 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	client := pb.NewGNMIClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
+
+	// Add gRPC overall timeout to the config options array.
+	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
+
+	//ctx, s.cancel = context.WithCancel(context.Background())
+	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
 
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "grpcInput.go",
