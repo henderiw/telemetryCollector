@@ -303,12 +303,12 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	ctx, s.cancel = context.WithCancel(context.Background())
 	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
 
-	fmt.Printf("Ctxt : %#v \n", ctx)
-	fmt.Printf("Server : %#v \n", s.server)
-	fmt.Printf("Opts : %#v \n", opts)
-	fmt.Printf("Username : %#v \n", s.username)
-	fmt.Printf("Password : %#v \n", s.password)
-	fmt.Printf("TLS : %#v \n", s.tls)
+	//fmt.Printf("Ctxt : %#v \n", ctx)
+	//fmt.Printf("Server : %#v \n", s.server)
+	//fmt.Printf("Opts : %#v \n", opts)
+	//fmt.Printf("Username : %#v \n", s.username)
+	//fmt.Printf("Password : %#v \n", s.password)
+	//fmt.Printf("TLS : %#v \n", s.tls)
 
 	conn, err := grpc.Dial(s.server, opts...)
 	if err != nil {
