@@ -3,20 +3,24 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"math"
+	"io/ioutil"
 	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	// "google.golang.org/grpc/metadata"
 )
 
 const (
@@ -52,6 +56,7 @@ func (cap *grpcInputCapability) initialize(
 	rand.Seed(time.Now().UnixNano())
 
 	// load variables from the config file
+	insecure, _ := ec.config.GetBool(name, "insecure")
 	tls, _ := ec.config.GetBool(name, "tls")
 	tlsCAPem, _ := ec.config.GetString(name, "tlsCAPem")
 	tlsClientCertPem, _ := ec.config.GetString(name, "tlsClientCertPem")
@@ -72,6 +77,7 @@ func (cap *grpcInputCapability) initialize(
 		"password":         password,
 		"encodingName":     encodingName,
 		"encap":            encap,
+		"insecure":         insecure,
 		"tls":              tls,
 		"tlsCAPem":         tlsCAPem,
 		"tlsClientCertPem": tlsClientCertPem,
@@ -163,6 +169,30 @@ func (cap *grpcInputCapability) initialize(
 	return cChan, nil
 }
 
+// loadCertificates loads certificates from file.
+func (s *grpcRemoteServer) loadCertificates() ([]tls.Certificate, *x509.CertPool) {
+	if s.tlsCAPem == "" || s.tlsClientCertPem == "" || s.tlsClientKeyPem == "" {
+		tcLogCtxt.Error("ca and cert and key must be set with file locations")
+	}
+
+	certificate, err := tls.LoadX509KeyPair(s.tlsCAPem, s.tlsClientKeyPem)
+	if err != nil {
+		tcLogCtxt.WithError(err).Error("could not load client key pair")
+	}
+
+	certPool := x509.NewCertPool()
+	caFile, err := ioutil.ReadFile(s.tlsCAPem)
+	if err != nil {
+		tcLogCtxt.WithError(err).Error("could not read CA certificate")
+	}
+
+	if ok := certPool.AppendCertsFromPEM(caFile); !ok {
+		tcLogCtxt.Error("failed to append CA certificate")
+	}
+
+	return []tls.Certificate{certificate}, certPool
+}
+
 // loginCreds holds the login/password
 type loginCreds struct {
 	Username   string
@@ -193,6 +223,7 @@ type grpcRemoteServer struct {
 	subscriptions    []string
 	username         string
 	password         string
+	insecure         bool
 	tls              bool
 	tlsCAPem         string
 	tlsClientCertPem string
@@ -251,11 +282,15 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	// Prepare dial options (TLS, user/password, timeout...)
 
-	opts := []grpc.DialOption{
-		grpc.WithTimeout(time.Millisecond * time.Duration(grpcTimeout)),
-		grpc.WithBlock(),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)),
-	}
+	opts := []grpc.DialOption{}
+
+	/*
+		opts := []grpc.DialOption{
+			grpc.WithTimeout(time.Millisecond * time.Duration(grpcTimeout)),
+			grpc.WithBlock(),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)),
+		}
+	*/
 	switch s.tls {
 	case false:
 		opts = append(opts, grpc.WithInsecure())
@@ -264,40 +299,56 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			"function": "loop",
 		}).Info("Insecure GRPC call ...")
 	default:
-		var creds credentials.TransportCredentials
-		var err error
 		tcLogCtxt.WithFields(log.Fields{
 			"file":     "grpcInput.go",
 			"function": "loop",
 		}).Info("TLS encrypted GRPC call ...")
-		if s.tlsCAPem != "" {
-			creds, err = credentials.NewClientTLSFromFile(
-				s.tlsCAPem,
-				s.tlsServerName)
-			if err != nil {
-				tcLogCtxt.WithError(err).WithFields(log.Fields{
-					"file":     "grpcInput.go",
-					"function": "loop",
-				}).Error(
-					"PEM loading failed, subscriptions aborted")
 
-				return
-			}
+		tlsConfig := &tls.Config{}
+		if s.insecure {
+			tlsConfig.InsecureSkipVerify = true
 		} else {
-			creds = credentials.NewClientTLSFromCert(
-				nil, s.tlsServerName)
+			certificates, certPool := s.loadCertificates()
+			tlsConfig.ServerName = s.server
+			tlsConfig.Certificates = certificates
+			tlsConfig.RootCAs = certPool
 		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	}
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
-	opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-		Username:   s.username,
-		Password:   s.password,
-		RequireTLS: s.tls}))
+		/*
+			var creds credentials.TransportCredentials
+			var err error
+			if s.tlsCAPem != "" {
+				creds, err = credentials.NewClientTLSFromFile(
+					s.tlsCAPem,
+					s.tlsServerName)
+				if err != nil {
+					tcLogCtxt.WithError(err).WithFields(log.Fields{
+						"file":     "grpcInput.go",
+						"function": "loop",
+					}).Error(
+						"PEM loading failed, subscriptions aborted")
+
+					return
+				}
+			} else {
+				creds = credentials.NewClientTLSFromCert(
+					nil, s.tlsServerName)
+			}
+			opts = append(opts, grpc.WithTransportCredentials(creds))
+		*/
+	}
+	if s.username != "" {
+		opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
+			Username:   s.username,
+			Password:   s.password,
+			RequireTLS: s.tls}))
+	}
 
 	// Add gRPC overall timeout to the config options array.
 	//ctx, _ = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
-	ctx, s.cancel = context.WithCancel(context.Background())
+
+	//ctx, s.cancel = context.WithCancel(context.Background())
 	//ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
 
 	fmt.Printf("Ctxt : %#v \n", ctx)
@@ -322,6 +373,9 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	client := pb.NewGNMIClient(conn)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "grpcInput.go",
 		"function": "loop",
@@ -341,6 +395,34 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			"Supported encodings: ", strings.Join(gnmiEncodingList, ", "))
 	}
 	codecType := s.encap
+
+	var pbPathList []*pb.Path
+	var pbModelDataList []*pb.ModelData
+	for _, xPath := range s.subscriptions {
+		pbPath, err := xpath.ToGNMIPath(xPath)
+		if err != nil {
+			tcLogCtxt.WithError(err).WithFields(log.Fields{
+				"xPath": xPath,
+			}).Error("error in parsing xpath to gnmi path")
+		}
+		pbPathList = append(pbPathList, pbPath)
+	}
+	getRequest := &pb.GetRequest{
+		Encoding:  pb.Encoding(encoding),
+		Path:      pbPathList,
+		UseModels: pbModelDataList,
+	}
+
+	fmt.Println("== getRequest:")
+	utils.PrintProto(getRequest)
+
+	getResponse, err := client.Get(ctx, getRequest)
+	if err != nil {
+		tcLogCtxt.WithError(err).Error("Get failed")
+	}
+
+	fmt.Println("== getResponse:")
+	utils.PrintProto(getResponse)
 
 	var wg sync.WaitGroup
 	for _, sub := range s.subscriptions {
