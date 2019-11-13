@@ -27,9 +27,9 @@ import (
 
 const (
 	xportGrpcWaitToRedial = 1
-	grpcTimeout           = 10000
+	grpcTimeout           = 20000
 	grpcEncodeJSON        = 4
-	sampleInterval        = 5000000000
+	sampleInterval        = 10000000000
 )
 
 type encoding int
@@ -370,7 +370,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	//defer cancel()
 
 	// Add gRPC overall timeout to the config options array.
-	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(10))
+	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(20))
 
 	//ctx, s.cancel = context.WithCancel(context.Background())
 	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
