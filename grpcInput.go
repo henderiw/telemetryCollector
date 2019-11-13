@@ -443,7 +443,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 		subscriptions := make([]*pb.Subscription, 1)
 		subscriptions[0] = &pb.Subscription{
-			//Path:           pbPath,
+			Path:           pbPath,
 			Mode:           pb.SubscriptionMode_SAMPLE,
 			SampleInterval: sampleInterval,
 			//SuppressRedundant: subscription.SuppressRedundant,
