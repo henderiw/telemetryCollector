@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -644,18 +645,18 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 	fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
-		fmt.Printf("update.Va.Value : %s \n", update.Val.GetValue())
+		fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
 		var value interface{}
-		//decoder := json.NewDecoder(bytes.NewReader(update.Val.GetValue()))
+		decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
 		//fmt.Printf("decoder : %#v \n", decoder)
-		//decoder.UseNumber()
-		//err := decoder.Decode(&value)
-		//fmt.Printf("Decoder Value : #%v \n ", value)
-		//fmt.Printf("Decoder Error : #%v \n ", err)
-		//if err != nil {
-		//	return nil, fmt.Errorf("Malformed JSON update %q in %s",
-		//		update.Value.GetValue(), update)
-		//}
+		decoder.UseNumber()
+		err := decoder.Decode(&value)
+		fmt.Printf("Decoder Value : #%v \n ", value)
+		fmt.Printf("Decoder Error : #%v \n ", err)
+		if err != nil {
+			return nil, fmt.Errorf("Malformed JSON update %q in %s",
+				update.Value.GetValue(), update)
+		}
 		return value, nil
 	case pb.Encoding_BYTES:
 		return strconv.Quote(string(update.Value.GetValue())), nil
