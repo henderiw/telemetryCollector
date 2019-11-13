@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
