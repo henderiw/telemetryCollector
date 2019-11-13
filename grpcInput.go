@@ -575,15 +575,17 @@ func singleSubscription(
 			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
 			fmt.Printf("subRspJSON: %s \n", subRspJSON)
 
-			response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
-			if !ok {
-				return
-			}
-			fmt.Printf("response : %s \n", response)
-
-			timestamp := time.Unix(0, response.Update.Timestamp)
-			fmt.Printf("Timestamp : %s \n", timestamp)
-
+			/*
+				response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
+				if !ok {
+					return
+				}
+				fmt.Printf("response : %s \n", response)
+			*/
+			/*
+				timestamp := time.Unix(0, response.Update.Timestamp)
+				fmt.Printf("Timestamp : %s \n", timestamp)
+			*/
 			/*
 
 
@@ -625,9 +627,9 @@ func singleSubscription(
 
 func joinPath(path *pb.Path) string {
 	var xpath []string
-	fmt.Printf("Path Elem length: %d \n", len(path.Elem))
+	//fmt.Printf("Path Elem length: %d \n", len(path.Elem))
 	for i := 0; i < len(path.Elem); i++ {
-		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
+		//fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		elementString := path.Elem[i].Name
 		if path.Elem[i].Key != nil {
 			for k, v := range path.Elem[i].Key {
@@ -637,22 +639,22 @@ func joinPath(path *pb.Path) string {
 		}
 		xpath = append(xpath, elementString)
 	}
-	fmt.Printf("Xpath : %s \n", xpath)
+	//fmt.Printf("Xpath : %s \n", xpath)
 	return strings.Join(xpath, "/")
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
+	//fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
-		fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
+		//fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
 		var value interface{}
 		decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
 		//fmt.Printf("decoder : %#v \n", decoder)
 		decoder.UseNumber()
 		err := decoder.Decode(&value)
-		fmt.Printf("Decoder Value : #%v \n ", value)
-		fmt.Printf("Decoder Error : #%v \n ", err)
+		//fmt.Printf("Decoder Value : #%v \n ", value)
+		//fmt.Printf("Decoder Error : #%v \n ", err)
 		if err != nil {
 			return nil, fmt.Errorf("Malformed JSON update %q in %s",
 				update.Value.GetValue(), update)
@@ -672,26 +674,26 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 	var err error
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
-		fmt.Println("SubscribeResponse_Update")
+		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
-		fmt.Printf("timestamp : %s \n", m["timestamp"])
+		//fmt.Printf("timestamp : %s \n", m["timestamp"])
 		m["path"] = "/" + joinPath(notif.Prefix)
-		fmt.Printf("Path : %s \n", m["path"])
-		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
+		//fmt.Printf("Path : %s \n", m["path"])
+		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
-			//updates := make(map[string]interface{}, len(notif.Update))
+			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Printf("Update : %s \n", update)
-				//updates[joinPath(update.Path)], err = convertUpdate(update)
+				//fmt.Printf("Update : %s \n", update)
+				updates[joinPath(update.Path)], err = convertUpdate(update)
 
-				fmt.Printf("Update path : %s \n", joinPath(update.Path))
-				fmt.Println("##############################################")
-				c, err := convertUpdate(update)
+				//fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				//fmt.Println("##############################################")
+				//c, err := convertUpdate(update)
 				if err != nil {
 					return "", err
 				}
-				fmt.Printf("Update path : %s \n", c)
+				//fmt.Printf("Update path : %s \n", c)
 			}
 			//m["updates"] = updates
 		}
