@@ -573,7 +573,7 @@ func singleSubscription(
 			}
 
 			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
-			fmt.Printf("subRspJSON: %s", subRspJSON)
+			fmt.Printf("subRspJSON: %s \n", subRspJSON)
 
 			response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
 			if !ok {
@@ -647,8 +647,12 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 	case pb.Encoding_JSON:
 		var value interface{}
 		decoder := json.NewDecoder(bytes.NewReader(update.Value.GetValue()))
+		fmt.Printf("decoder : %#v \n", decoder)
 		decoder.UseNumber()
-		if err := decoder.Decode(&value); err != nil {
+		err := decoder.Decode(&value)
+		fmt.Printf("Decoder Value : #%v", value)
+		fmt.Printf("Decoder Error : #%v", err)
+		if err != nil {
 			return nil, fmt.Errorf("Malformed JSON update %q in %s",
 				update.Value.GetValue(), update)
 		}
@@ -673,8 +677,8 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		fmt.Printf("timestamp : %s \n", m["timestamp"])
 		m["path"] = "/" + joinPath(notif.Prefix)
 		fmt.Printf("Path : %s \n", m["path"])
+		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
-			fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 			//updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
 				fmt.Printf("Update : %s \n", update)
