@@ -285,13 +285,10 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	opts := []grpc.DialOption{}
 
-	/*
-		opts := []grpc.DialOption{
-			grpc.WithTimeout(time.Millisecond * time.Duration(grpcTimeout)),
-			grpc.WithBlock(),
-			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)),
-		}
-	*/
+	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(grpcTimeout)))
+	opts = append(opts, grpc.WithBlock())
+	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)))
+
 	switch s.tls {
 	case false:
 		opts = append(opts, grpc.WithInsecure())
@@ -344,12 +341,6 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			Username:   s.username,
 			Password:   s.password,
 			RequireTLS: s.tls}))
-	}
-
-	opts = []grpc.DialOption{
-		grpc.WithTimeout(time.Millisecond * time.Duration(grpcTimeout)),
-		grpc.WithBlock(),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)),
 	}
 
 	// Add gRPC overall timeout to the config options array.
