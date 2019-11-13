@@ -705,7 +705,7 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		}
 		m = map[string]interface{}{"notification": m}
 	case *pb.SubscribeResponse_SyncResponse:
-		fmt.Println("SubscribeResponse_SyncResponse")
+		//fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
 	default:
 		fmt.Printf("Response type: %#v \n", resp)
