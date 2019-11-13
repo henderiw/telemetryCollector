@@ -618,7 +618,7 @@ func singleSubscription(
 
 	for {
 		subscribeRsp, err := thisStream.Recv()
-		//utils.PrintProto(subscribeRsp)
+		utils.PrintProto(subscribeRsp)
 
 		select {
 		case <-thisCtx.Done():
