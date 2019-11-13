@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -343,6 +344,12 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 			Username:   s.username,
 			Password:   s.password,
 			RequireTLS: s.tls}))
+	}
+
+	opts = []grpc.DialOption{
+		grpc.WithTimeout(time.Millisecond * time.Duration(grpcTimeout)),
+		grpc.WithBlock(),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)),
 	}
 
 	// Add gRPC overall timeout to the config options array.
