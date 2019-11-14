@@ -734,10 +734,12 @@ func joinPath(path *pb.Path) string {
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
+	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetAnyVal())
+	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetStringVal())
+	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetJsonVal())
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
-		fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
+		fmt.Printf("update.Va.Value : %s \n", update.Val.GetStringVal())
 		var value interface{}
 		decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
 		fmt.Printf("decoder : %#v \n", decoder)
