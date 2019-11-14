@@ -733,19 +733,19 @@ func joinPath(path *pb.Path) string {
 func convertUpdate(update *pb.Update) (interface{}, error) {
 	var value interface{}
 
-	switch fmt.Sprintf("%T\n", update.Val.GetValue()) {
-	case "*gnmi.TypedValue_StringVal":
-		value = update.Val.GetStringVal()
-	case "*gnmi.TypedValue_JsonVal":
-		value = update.Val.GetJsonVal()
-	default:
-		return nil,
-			fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
+	valueType := fmt.Sprintf("%T\n", update.Val.GetValue())
+	fmt.Printf("Value Type: %s", valueType)
 
+	if strings.Contains(valueType, "String") {
+		value = update.Val.GetStringVal()
+		return value, nil
+	}
+	if strings.Contains(valueType, "Json") {
+		value = update.Val.GetJsonVal()
+		return value, nil
 	}
 
-	value = update.Val.GetStringVal()
-	return value, nil
+	return nil, fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
 
 	/*
 		switch update.Value.GetType() {
