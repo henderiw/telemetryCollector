@@ -717,41 +717,41 @@ func singleSubscription(
 
 func joinPath(path *pb.Path) string {
 	var xpath []string
-	//fmt.Printf("Path Elem length: %d \n", len(path.Elem))
+	fmt.Printf("Path Elem length: %d \n", len(path.Elem))
 	for i := 0; i < len(path.Elem); i++ {
-		//fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
+		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		elementString := path.Elem[i].Name
 		if path.Elem[i].Key != nil {
 			for k, v := range path.Elem[i].Key {
 				elementString += "[" + k + "=" + v + "]"
 			}
-			//fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
+			fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
 		}
 		xpath = append(xpath, elementString)
 	}
-	//fmt.Printf("Xpath : %s \n", xpath)
+	fmt.Printf("Xpath : %s \n", xpath)
 	return strings.Join(xpath, "/")
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	//fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
+	fmt.Printf("update.Value.Type : %#v \n", update.Value.GetType())
 	switch update.Value.GetType() {
 	case pb.Encoding_JSON:
-		//fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
+		fmt.Printf("update.Va.Value : %s \n", update.Val.GetJsonVal())
 		var value interface{}
 		decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
-		//fmt.Printf("decoder : %#v \n", decoder)
+		fmt.Printf("decoder : %#v \n", decoder)
 		decoder.UseNumber()
 		err := decoder.Decode(&value)
-		//fmt.Printf("Decoder Value : #%v \n ", value)
-		//fmt.Printf("Decoder Error : #%v \n ", err)
+		fmt.Printf("Decoder Value : #%v \n ", value)
+		fmt.Printf("Decoder Error : #%v \n ", err)
 		if err != nil {
 			return nil, fmt.Errorf("Malformed JSON update %q in %s",
 				update.Value.GetValue(), update)
 		}
 		return value, nil
 	case pb.Encoding_BYTES:
-		return strconv.Quote(string(update.Value.GetValue())), nil
+		return strconv.Quote(string(update.Val.GetBytesVal())), nil
 	default:
 		return nil,
 			fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
@@ -779,16 +779,16 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 			fmt.Println("##############################################")
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
+				fmt.Println("##############################################")
 				fmt.Printf("Update : %s \n", update)
-				updates[joinPath(update.Path)], err = convertUpdate(update)
-
-				//fmt.Printf("Update path : %s \n", joinPath(update.Path))
-				//fmt.Println("##############################################")
-				//c, err := convertUpdate(update)
+				fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				c, err := convertUpdate(update)
 				if err != nil {
 					return "", err
 				}
-				//fmt.Printf("Update path : %s \n", c)
+				fmt.Printf("Update path : %s \n", c)
+
+				updates[joinPath(update.Path)], err = convertUpdate(update)
 			}
 			m["updates"] = updates
 		}
