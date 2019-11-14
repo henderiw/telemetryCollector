@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
@@ -628,7 +629,7 @@ func singleSubscription(
 
 	for {
 		subscribeRsp, err := thisStream.Recv()
-		//utils.PrintProto(subscribeRsp)
+		utils.PrintProto(subscribeRsp)
 
 		select {
 		case <-thisCtx.Done():
@@ -763,17 +764,19 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 	var err error
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
-		//fmt.Println("SubscribeResponse_Update")
+		fmt.Println("##############################################")
+		fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
-		//fmt.Printf("timestamp : %s \n", m["timestamp"])
+		fmt.Printf("timestamp : %s \n", m["timestamp"])
 		m["path"] = "/" + joinPath(notif.Prefix)
-		//fmt.Printf("Path : %s \n", m["path"])
-		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
+		fmt.Printf("Path : %s \n", m["path"])
+		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
+			fmt.Println("##############################################")
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				//fmt.Printf("Update : %s \n", update)
+				fmt.Printf("Update : %s \n", update)
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 
 				//fmt.Printf("Update path : %s \n", joinPath(update.Path))
@@ -787,6 +790,7 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 			m["updates"] = updates
 		}
 		if len(notif.Delete) != 0 {
+			fmt.Println("##############################################")
 			deletes := make([]string, len(notif.Delete))
 			for i, del := range notif.Delete {
 				deletes[i] = joinPath(del)
@@ -795,7 +799,8 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		}
 		m = map[string]interface{}{"notification": m}
 	case *pb.SubscribeResponse_SyncResponse:
-		//fmt.Println("SubscribeResponse_SyncResponse")
+		fmt.Println("##############################################")
+		fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
 	default:
 		fmt.Printf("Response type: %#v \n", resp)
