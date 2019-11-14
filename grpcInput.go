@@ -289,59 +289,67 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	opts = append(opts, grpc.WithBlock())
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)))
 
-	switch s.tls {
-	case false:
+	if s.tls {
 		opts = append(opts, grpc.WithInsecure())
+
 		tcLogCtxt.WithFields(log.Fields{
 			"file":     "grpcInput.go",
 			"function": "loop",
 		}).Info("Insecure GRPC call ...")
-	default:
-		tcLogCtxt.WithFields(log.Fields{
-			"file":     "grpcInput.go",
-			"function": "loop",
-		}).Info("TLS encrypted GRPC call ...")
+	} else {
 
 		tlsConfig := &tls.Config{}
 		if s.insecure {
 			tlsConfig.InsecureSkipVerify = true
+			tlsConfig.ServerName = s.server
+
+			tcLogCtxt.WithFields(log.Fields{
+				"file":     "grpcInput.go",
+				"function": "loop",
+			}).Info("TLS encrypted GRPC call - insecure ...")
 		} else {
 			certificates, certPool := s.loadCertificates()
 			tlsConfig.ServerName = s.server
 			tlsConfig.Certificates = certificates
 			tlsConfig.RootCAs = certPool
+
+			tcLogCtxt.WithFields(log.Fields{
+				"file":     "grpcInput.go",
+				"function": "loop",
+			}).Info("TLS encrypted GRPC call - secure with TLS...")
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
-
-		/*
-			var creds credentials.TransportCredentials
-			var err error
-			if s.tlsCAPem != "" {
-				creds, err = credentials.NewClientTLSFromFile(
-					s.tlsCAPem,
-					s.tlsServerName)
-				if err != nil {
-					tcLogCtxt.WithError(err).WithFields(log.Fields{
-						"file":     "grpcInput.go",
-						"function": "loop",
-					}).Error(
-						"PEM loading failed, subscriptions aborted")
-
-					return
-				}
-			} else {
-				creds = credentials.NewClientTLSFromCert(
-					nil, s.tlsServerName)
-			}
-			opts = append(opts, grpc.WithTransportCredentials(creds))
-		*/
 	}
+
 	if s.username != "" {
 		opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
 			Username:   s.username,
 			Password:   s.password,
 			RequireTLS: s.tls}))
 	}
+
+	/*
+		var creds credentials.TransportCredentials
+		var err error
+		if s.tlsCAPem != "" {
+			creds, err = credentials.NewClientTLSFromFile(
+				s.tlsCAPem,
+				s.tlsServerName)
+			if err != nil {
+				tcLogCtxt.WithError(err).WithFields(log.Fields{
+					"file":     "grpcInput.go",
+					"function": "loop",
+				}).Error(
+					"PEM loading failed, subscriptions aborted")
+
+				return
+			}
+		} else {
+			creds = credentials.NewClientTLSFromCert(
+				nil, s.tlsServerName)
+		}
+		opts = append(opts, grpc.WithTransportCredentials(creds))
+	*/
 
 	fmt.Printf("Ctxt : %#v \n", ctx)
 	fmt.Printf("Server : %#v \n", s.server)
