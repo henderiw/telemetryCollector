@@ -299,6 +299,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	} else {
 
 		tlsConfig := &tls.Config{}
+		fmt.Printf("s.insecure : %#v \n", s.insecure)
 		if s.insecure {
 			tlsConfig.InsecureSkipVerify = true
 			tlsConfig.ServerName = s.server
