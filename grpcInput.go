@@ -193,32 +193,6 @@ func (s *grpcRemoteServer) loadCertificates() ([]tls.Certificate, *x509.CertPool
 	return []tls.Certificate{certificate}, certPool
 }
 
-// loginCreds holds the login/password
-/*
-type loginCreds struct {
-	Username   string
-	Password   string
-	RequireTLS bool
-}
-*/
-
-// GetRequestMetadata gets the current request metadata
-/*
-func (l *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
-	return map[string]string{
-		"Username": l.Username,
-		"password": l.Password,
-	}, nil
-}
-*/
-
-// RequireTransportSecurity indicates whether the credentials requires transport security
-/*
-func (l *loginCreds) RequireTransportSecurity() bool {
-	return l.RequireTLS
-}
-*/
-
 // grpcRemoteServer
 type grpcRemoteServer struct {
 	name             string
@@ -241,7 +215,7 @@ type grpcRemoteServer struct {
 	dChans []chan<- dMsg
 	// Use to signal that all children have shutdown.
 	childrenDone chan struct{}
-	cancel       context.CancelFunc
+	//cancel       context.CancelFunc
 }
 
 func (s *grpcRemoteServer) String() string {
@@ -323,10 +297,6 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	if s.username != "" {
 		opts = append(opts, grpc.WithPerRPCCredentials(s))
-		//opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-		//	Username:   s.username,
-		//	Password:   s.password,
-		//	RequireTLS: s.tls}))
 	}
 
 	/*
@@ -515,6 +485,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 func (s *grpcRemoteServer) start() {
 	var stats msgStats
 	var ctx context.Context
+	var cancel context.CancelFunc
 
 	go func() {
 		// Startup the system.
@@ -532,7 +503,7 @@ func (s *grpcRemoteServer) start() {
 		case <-s.childrenDone:
 			// If we receive childrenDone signal, we need to retry.
 			// Start by making a new channel.
-			ctx, s.cancel = context.WithCancel(context.Background())
+			ctx, cancel = context.WithCancel(context.Background())
 			s.childrenDone = make(chan struct{})
 			go s.loop(ctx)
 
@@ -562,10 +533,9 @@ func (s *grpcRemoteServer) start() {
 				// its connections and wait for
 				// cancellation to complete
 				// synchronously.
-				if s.cancel != nil {
-					tcLogCtxt.Debug(
-						"waiting for children")
-					s.cancel()
+				if cancel != nil {
+					tcLogCtxt.Debug("waiting for children")
+					cancel()
 					<-s.childrenDone
 				} else {
 					tcLogCtxt.Debug(
