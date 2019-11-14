@@ -661,7 +661,7 @@ func singleSubscription(
 			}
 
 			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
-			fmt.Printf("subRspJSON: %s \n", subRspJSON)
+			fmt.Printf("subRspJSON(%s): %s \n", thisServer.name, subRspJSON)
 
 			/*
 				response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
