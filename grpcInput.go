@@ -778,36 +778,36 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 	var err error
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
-		fmt.Println("##############################################")
-		fmt.Println("SubscribeResponse_Update")
+		//fmt.Println("##############################################")
+		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
-		fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
-		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
+		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
+		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
 			m["path"] = "/" + joinPath(notif.Prefix)
-			fmt.Printf("Path : %s \n", m["path"])
+			//fmt.Printf("Path : %s \n", m["path"])
 		}
-		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
+		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
-			fmt.Println("##############################################")
+			//fmt.Println("##############################################")
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Println("##############################################")
-				fmt.Printf("Update : %s \n", update)
-				fmt.Printf("Update path : %s \n", joinPath(update.Path))
-				c, err := convertUpdate(update)
-				if err != nil {
-					return "", err
-				}
-				fmt.Printf("Update path : %s \n", c)
+				//fmt.Println("##############################################")
+				//fmt.Printf("Update : %s \n", update)
+				//fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				//c, err := convertUpdate(update)
+				//if err != nil {
+				//	return "", err
+				//}
+				//fmt.Printf("Update path : %s \n", c)
 
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 			}
 			m["updates"] = updates
 		}
 		if len(notif.Delete) != 0 {
-			fmt.Println("##############################################")
+			//fmt.Println("##############################################")
 			deletes := make([]string, len(notif.Delete))
 			for i, del := range notif.Delete {
 				deletes[i] = joinPath(del)
@@ -816,11 +816,11 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		}
 		m = map[string]interface{}{"notification": m}
 	case *pb.SubscribeResponse_SyncResponse:
-		fmt.Println("##############################################")
-		fmt.Println("SubscribeResponse_SyncResponse")
+		//fmt.Println("##############################################")
+		//fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
 	default:
-		fmt.Printf("Response type: %#v \n", resp)
+		//fmt.Printf("Response type: %#v \n", resp)
 		return "", fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
 	js, err := json.MarshalIndent(m, "", "  ")
