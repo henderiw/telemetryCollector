@@ -19,7 +19,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
 	// "google.golang.org/grpc/metadata"
 )
 
@@ -374,14 +373,10 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 	client := pb.NewGNMIClient(conn)
 
-	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-
 	// Add gRPC overall timeout to the config options array.
-	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(3600))
-
-	//ctx, s.cancel = context.WithCancel(context.Background())
-	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
+	//ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(3600))
+	//ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
+	//defer s.cancel()
 
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "grpcInput.go",
