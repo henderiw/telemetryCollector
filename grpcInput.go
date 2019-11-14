@@ -377,7 +377,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	//defer cancel()
 
 	// Add gRPC overall timeout to the config options array.
-	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(20))
+	ctx, s.cancel = context.WithTimeout(context.Background(), time.Second*time.Duration(3600))
 
 	//ctx, s.cancel = context.WithCancel(context.Background())
 	ctx = metadata.AppendToOutgoingContext(ctx, "username", s.username, "password", s.password)
