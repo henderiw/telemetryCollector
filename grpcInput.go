@@ -289,7 +289,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	opts = append(opts, grpc.WithBlock())
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)))
 
-	if s.tls {
+	if !s.tls {
 		opts = append(opts, grpc.WithInsecure())
 
 		tcLogCtxt.WithFields(log.Fields{
