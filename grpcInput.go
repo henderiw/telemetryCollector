@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -10,7 +9,6 @@ import (
 	"io/ioutil"
 	"math"
 	"math/rand"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -734,30 +732,37 @@ func joinPath(path *pb.Path) string {
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
-	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetAnyVal())
+	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetValue())
 	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetStringVal())
 	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetJsonVal())
-	switch update.Value.GetType() {
-	case pb.Encoding_JSON:
-		fmt.Printf("update.Va.Value : %s \n", update.Val.GetStringVal())
-		var value interface{}
-		decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
-		fmt.Printf("decoder : %#v \n", decoder)
-		decoder.UseNumber()
-		err := decoder.Decode(&value)
-		fmt.Printf("Decoder Value : #%v \n ", value)
-		fmt.Printf("Decoder Error : #%v \n ", err)
-		if err != nil {
-			return nil, fmt.Errorf("Malformed JSON update %q in %s",
-				update.Value.GetValue(), update)
+
+	var value interface{}
+	value = update.Val.GetStringVal()
+	return value, nil
+
+	/*
+		switch update.Value.GetType() {
+		case pb.Encoding_JSON:
+			fmt.Printf("update.Va.Value : %s \n", update.Val.GetStringVal())
+			var value interface{}
+			decoder := json.NewDecoder(bytes.NewReader(update.Val.GetJsonVal()))
+			fmt.Printf("decoder : %#v \n", decoder)
+			decoder.UseNumber()
+			err := decoder.Decode(&value)
+			fmt.Printf("Decoder Value : #%v \n ", value)
+			fmt.Printf("Decoder Error : #%v \n ", err)
+			if err != nil {
+				return nil, fmt.Errorf("Malformed JSON update %q in %s",
+					update.Value.GetValue(), update)
+			}
+			return value, nil
+		case pb.Encoding_BYTES:
+			return strconv.Quote(string(update.Val.GetBytesVal())), nil
+		default:
+			return nil,
+				fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
 		}
-		return value, nil
-	case pb.Encoding_BYTES:
-		return strconv.Quote(string(update.Val.GetBytesVal())), nil
-	default:
-		return nil,
-			fmt.Errorf("Unhandled type of value %v in %s", update.Value.GetType(), update)
-	}
+	*/
 }
 
 // subscribeResponseToJSON converts a SubscribeResponse into a JSON string
