@@ -768,9 +768,12 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 		fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
-		fmt.Printf("timestamp : %s \n", m["timestamp"])
-		m["path"] = "/" + joinPath(notif.Prefix)
-		fmt.Printf("Path : %s \n", m["path"])
+		fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
+		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
+		if notif.Prefix != nil {
+			m["path"] = "/" + joinPath(notif.Prefix)
+			fmt.Printf("Path : %s \n", m["path"])
+		}
 		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
 			fmt.Println("##############################################")
