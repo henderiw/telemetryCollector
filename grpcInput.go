@@ -194,24 +194,30 @@ func (s *grpcRemoteServer) loadCertificates() ([]tls.Certificate, *x509.CertPool
 }
 
 // loginCreds holds the login/password
+/*
 type loginCreds struct {
 	Username   string
 	Password   string
 	RequireTLS bool
 }
+*/
 
 // GetRequestMetadata gets the current request metadata
+/*
 func (l *loginCreds) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
 	return map[string]string{
 		"Username": l.Username,
 		"password": l.Password,
 	}, nil
 }
+*/
 
 // RequireTransportSecurity indicates whether the credentials requires transport security
+/*
 func (l *loginCreds) RequireTransportSecurity() bool {
 	return l.RequireTLS
 }
+*/
 
 // grpcRemoteServer
 type grpcRemoteServer struct {
@@ -242,8 +248,7 @@ func (s *grpcRemoteServer) String() string {
 	return s.name
 }
 
-func (s *grpcRemoteServer) GetRequestMetadata(
-	ctx context.Context, uri ...string) (
+func (s *grpcRemoteServer) GetRequestMetadata(context.Context, ...string) (
 	map[string]string, error) {
 
 	tcLogCtxt.WithFields(log.Fields{
@@ -251,25 +256,20 @@ func (s *grpcRemoteServer) GetRequestMetadata(
 		"function": "GetRequestMetadata",
 	}).Info("Getting Request MetaData call ...")
 
-	//username, password, err := s.auth.getUP()
-	username := s.username
-	password := s.password
 	return map[string]string{
-		"username": username,
-		"password": password,
+		"username": s.username,
+		"password": s.password,
 	}, err
 }
 
 func (s *grpcRemoteServer) RequireTransportSecurity() bool {
-	//
-	// to be updated
 
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "grpcInput.go",
 		"function": "RequireTransportSecurity",
 	}).Info("Getting Require Transport security call ...")
 
-	return false
+	return s.tls
 }
 
 // continuous loop to stay connected and pulling streams for all the subscriptions.
@@ -322,10 +322,11 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	}
 
 	if s.username != "" {
-		opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
-			Username:   s.username,
-			Password:   s.password,
-			RequireTLS: s.tls}))
+		opts = append(opts, grpc.WithPerRPCCredentials(s))
+		//opts = append(opts, grpc.WithPerRPCCredentials(&loginCreds{
+		//	Username:   s.username,
+		//	Password:   s.password,
+		//	RequireTLS: s.tls}))
 	}
 
 	/*
