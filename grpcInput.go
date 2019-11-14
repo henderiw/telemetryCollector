@@ -145,6 +145,7 @@ func (cap *grpcInputCapability) initialize(
 		subscriptions:    newSubscriptions,
 		username:         username,
 		password:         password,
+		insecure:         insecure,
 		tls:              tls,
 		tlsCAPem:         tlsCAPem,
 		tlsClientCertPem: tlsClientCertPem,
