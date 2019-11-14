@@ -732,6 +732,7 @@ func joinPath(path *pb.Path) string {
 }
 
 func convertUpdate(update *pb.Update) (interface{}, error) {
+	fmt.Printf("%T\n", update.Val.GetValue())
 	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetValue())
 	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetStringVal())
 	fmt.Printf("update.Value.Type : %#v \n", update.Val.GetJsonVal())
