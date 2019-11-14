@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/gnxi/utils"
 	"github.com/google/gnxi/utils/xpath"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	log "github.com/sirupsen/logrus"
@@ -627,7 +626,7 @@ func singleSubscription(
 
 	for {
 		subscribeRsp, err := thisStream.Recv()
-		utils.PrintProto(subscribeRsp)
+		//utils.PrintProto(subscribeRsp)
 
 		select {
 		case <-thisCtx.Done():
@@ -715,19 +714,19 @@ func singleSubscription(
 
 func joinPath(path *pb.Path) string {
 	var xpath []string
-	fmt.Printf("Path Elem length: %d \n", len(path.Elem))
+	//fmt.Printf("Path Elem length: %d \n", len(path.Elem))
 	for i := 0; i < len(path.Elem); i++ {
-		fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
+		//fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		elementString := path.Elem[i].Name
 		if path.Elem[i].Key != nil {
 			for k, v := range path.Elem[i].Key {
 				elementString += "[" + k + "=" + v + "]"
 			}
-			fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
+			//fmt.Printf("Elem Name Key : %d : %s \n", i, path.Elem[i].Key)
 		}
 		xpath = append(xpath, elementString)
 	}
-	fmt.Printf("Xpath : %s \n", xpath)
+	//fmt.Printf("Xpath : %s \n", xpath)
 	return strings.Join(xpath, "/")
 }
 
