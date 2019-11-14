@@ -734,7 +734,7 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 	var value interface{}
 
 	valueType := fmt.Sprintf("%T\n", update.Val.GetValue())
-	fmt.Printf("Value Type: %s", valueType)
+	//fmt.Printf("Value Type: %s", valueType)
 
 	if strings.Contains(valueType, "String") {
 		value = update.Val.GetStringVal()
