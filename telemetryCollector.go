@@ -35,7 +35,6 @@ type tcInfo struct {
 	inputEntity map[string]*inputEntity
 }
 
-//
 // types to support extracting the configuration from go text/templates
 type configEnv struct {
 }
@@ -169,20 +168,20 @@ func run() {
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "telemetryCollector.go",
 		"function": "run",
-	}).Debug("Telemetry Collector watching for shutdown...")
+	}).Info("Telemetry Collector watching for shutdown...")
 	go func() {
 		for range signalChan {
 			tcLogCtxt.WithFields(log.Fields{
 				"file":     "telemetryCollector.go",
 				"function": "run",
-			}).Debug("Interrupt, stopping gracefully...")
+			}).Info("Interrupt, stopping gracefully...")
 
 			for name, entity := range tc.inputEntity {
 				tcLogCtxt.WithFields(log.Fields{
 					"file":     "telemetryCollector.go",
 					"function": "run",
 					"name":     name,
-				}).Debug("Stopping entity...")
+				}).Info("Stopping entity...")
 				respChan := make(chan *cMsg)
 				request := &cMsg{
 					id:       shutdown,

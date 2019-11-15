@@ -23,10 +23,10 @@ import (
 )
 
 const (
-	xportGrpcWaitToRedial = 1
-	grpcTimeout           = 20000
-	grpcEncodeJSON        = 4
-	sampleInterval        = 10000000000
+	grpcWaitToRedial   = 1
+	grpcTimeout        = 20000
+	grpcEncodeJSON     = 4
+	grpcSampleInterval = 10000000000
 )
 
 type encoding int
@@ -44,12 +44,8 @@ func grpcInputCapabilityNew() inputCapability {
 type grpcInputCapability struct {
 }
 
-func (cap *grpcInputCapability) initialize(
-	name string,
-	ec entityConfig,
-	dChans []chan<- dMsg) (chan<- *cMsg, error) {
-
-	newSubscriptions := make([]string, 0)
+func (cap *grpcInputCapability) initialize(name string, ec entityConfig, dChans []chan<- dMsg) (
+	chan<- *cMsg, error) {
 
 	// Set up pseudo random seed for ReqID generation.
 	rand.Seed(time.Now().UnixNano())
@@ -84,6 +80,7 @@ func (cap *grpcInputCapability) initialize(
 		"tlsServerName":    tlsServerName,
 	}).Info("Loaded the following variables for initializing the grpc target")
 
+	newSubscriptions := make([]string, 0)
 	if err == nil {
 		// server info provided, further initialization of the server
 		subscriptionCfg, err := ec.config.GetString(name, "subscriptions")
@@ -97,20 +94,12 @@ func (cap *grpcInputCapability) initialize(
 
 			return nil, err
 		}
+
 		subscriptions := strings.Split(subscriptionCfg, ",")
 		for _, subscription := range subscriptions {
 			newSubscriptions = append(newSubscriptions, strings.TrimSpace(subscription))
 		}
-		fmt.Printf("Subscriprions: %#v \n", newSubscriptions)
-
-		/*
-			// Handle user/password
-			authCollect := grpcUPCollectorFactory()
-			err = authCollect.handleConfig(nc, name, serverSockAddr)
-			if err != nil {
-				return nil, err
-			}
-		*/
+		//fmt.Printf("Subscriprions: %#v \n", newSubscriptions)
 
 	} else {
 		// target information missing in the entity section of the config file
@@ -255,9 +244,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 	}).Info("Entering Continuous loop ...")
 
 	// Prepare dial options (TLS, user/password, timeout...)
-
 	opts := []grpc.DialOption{}
-
 	opts = append(opts, grpc.WithTimeout(time.Millisecond*time.Duration(grpcTimeout)))
 	opts = append(opts, grpc.WithBlock())
 	opts = append(opts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(math.MaxInt32)))
@@ -322,12 +309,12 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	*/
 
-	fmt.Printf("Ctxt : %#v \n", ctx)
-	fmt.Printf("Server : %#v \n", s.server)
-	fmt.Printf("Opts : %#v \n", opts)
-	fmt.Printf("Username : %#v \n", s.username)
-	fmt.Printf("Password : %#v \n", s.password)
-	fmt.Printf("TLS : %#v \n", s.tls)
+	//fmt.Printf("Ctxt : %#v \n", ctx)
+	//fmt.Printf("Server : %#v \n", s.server)
+	//fmt.Printf("Opts : %#v \n", opts)
+	//fmt.Printf("Username : %#v \n", s.username)
+	//fmt.Printf("Password : %#v \n", s.password)
+	//fmt.Printf("TLS : %#v \n", s.tls)
 
 	conn, err := grpc.Dial(s.server, opts...)
 	if err != nil {
@@ -419,7 +406,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		subscriptions[0] = &pb.Subscription{
 			//Path:           pbPath,
 			Mode:           pb.SubscriptionMode_SAMPLE,
-			SampleInterval: sampleInterval,
+			SampleInterval: grpcSampleInterval,
 			//SuppressRedundant: subscription.SuppressRedundant,
 			//HeartbeatInterval: uint64(subscription.HeartbeatInterval.Duration.Nanoseconds()),
 		}
@@ -452,8 +439,8 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 
 		s.reqID = s.reqID + 1
 
-		clientSub, err := client.Subscribe(ctx)
-		err = clientSub.Send(&subscribeRequest)
+		streamSub, err := client.Subscribe(ctx)
+		err = streamSub.Send(&subscribeRequest)
 
 		if err != nil {
 			tcLogCtxt.WithError(err).WithFields(
@@ -469,7 +456,7 @@ func (s *grpcRemoteServer) loop(ctx context.Context) {
 		// out.
 		wg.Add(1)
 		go singleSubscription(
-			ctx, s, sub, s.reqID, clientSub, codecType, s.dChans, &wg)
+			ctx, s, sub, s.reqID, streamSub, codecType, s.dChans, &wg)
 	}
 
 	wg.Wait()
@@ -499,7 +486,6 @@ func (s *grpcRemoteServer) start() {
 
 	for {
 		select {
-
 		case <-s.childrenDone:
 			// If we receive childrenDone signal, we need to retry.
 			// Start by making a new channel.
@@ -508,8 +494,7 @@ func (s *grpcRemoteServer) start() {
 			go s.loop(ctx)
 
 			// wait before retry
-			time.Sleep(
-				xportGrpcWaitToRedial * time.Second)
+			time.Sleep(grpcWaitToRedial * time.Second)
 
 		case msg := <-s.cChan:
 			switch msg.id {
@@ -571,41 +556,34 @@ func (s *grpcRemoteServer) start() {
 //  channels. Any failures will cause the stream handling to terminate
 //  and indicate as much to the wait group. Equally, if the
 //  subscription is cancelled we bail out.
-func singleSubscription(
-	thisCtx context.Context,
-	thisServer *grpcRemoteServer,
-	thisSub string,
-	thisReqID int64,
-	thisStream pb.GNMI_SubscribeClient,
-	thisCodec encoding,
-	thisDataChans []chan<- dMsg,
-	thisWg *sync.WaitGroup) {
+func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, reqID int64, stream pb.GNMI_SubscribeClient,
+	codec encoding, dataChans []chan<- dMsg, wg *sync.WaitGroup) {
 
-	defer thisWg.Done()
+	defer wg.Done()
 
 	tcLogCtxt.WithFields(
 		log.Fields{
 			"file":         "grpcInput.go",
 			"function":     "singleSubscription",
-			"subscription": thisSub,
-			"reqID":        thisReqID,
+			"subscription": sub,
+			"reqID":        reqID,
 		}).Info("Subscription handler running")
 
 	for {
-		subscribeRsp, err := thisStream.Recv()
+		subscribeRsp, err := stream.Recv()
 		//utils.PrintProto(subscribeRsp)
 
 		select {
-		case <-thisCtx.Done():
+		case <-ctx.Done():
 			count := 0
-			thisStream.CloseSend()
+			stream.CloseSend()
 			for {
-				if _, err := thisStream.Recv(); err != nil {
+				if _, err := stream.Recv(); err != nil {
 					tcLogCtxt.WithFields(log.Fields{
 						"file":         "grpcInput.go",
 						"function":     "singleSubscription",
-						"subscription": thisSub,
-						"reqID":        thisReqID,
+						"subscription": sub,
+						"reqID":        reqID,
 						"count":        count,
 					}).Info(
 						"Drained on cancellation")
@@ -619,15 +597,15 @@ func singleSubscription(
 				tcLogCtxt.WithError(err).WithFields(log.Fields{
 					"file":         "grpcInput.go",
 					"function":     "singleSubscription",
-					"subscription": thisSub,
-					"reqID":        thisReqID,
+					"subscription": sub,
+					"reqID":        reqID,
 					"report":       subscribeRsp.GetError(),
 				}).Error("Server terminated subscription")
 				return
 			}
 
 			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
-			fmt.Printf("subRspJSON(%s): %s \n", thisServer.name, subRspJSON)
+			fmt.Printf("subRspJSON(%s): %s \n", s.name, subRspJSON)
 
 			/*
 				response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
