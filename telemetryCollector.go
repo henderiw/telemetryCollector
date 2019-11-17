@@ -27,9 +27,6 @@ var tcLogCtxt = tcLog.WithFields(log.Fields{
 	"tag": "telemetryCollector",
 })
 
-// tc holds the information of the telemtry Collector
-var tc tcInfo
-
 // tcInfo type defines the information of the telemetry Collector
 type tcInfo struct {
 	// Configuration File to support the telemtry collector
@@ -43,6 +40,9 @@ type tcInfo struct {
 	// Input entity keyed by name
 	inputEntity map[string]*inputEntity
 }
+
+// tc holds the information of the telemtry Collector
+var tc tcInfo
 
 // types to support extracting the configuration from go text/templates
 type configEnv struct {
@@ -207,7 +207,7 @@ func loadingConfig() error {
 		}
 		entityFunction := inFunction()
 
-		inCtrl, err := entityFunction.initialize(section, ec, dataChans)
+		cChan, err := entityFunction.initialize(section, ec, dataChans)
 		if err != nil {
 			tcLogCtxt.WithError(err).WithFields(log.Fields{
 				"file":     "telemetryCollector.go",
@@ -227,7 +227,7 @@ func loadingConfig() error {
 		}).Info("dataCollector starting up section")
 		ie := new(inputEntity)
 		ie.name = section
-		ie.cChan = inCtrl
+		ie.cChan = cChan
 		tc.inputEntity[section] = ie
 
 	}
@@ -320,6 +320,7 @@ func main() {
 	tc = tcInfo{
 		configFile:         "telemetryCollector.conf",
 		outputCapabilities: activeOutputCapability,
+		outputEntity:       make(map[string]*outputEntity),
 		inputCapabilities:  activeInputCapability,
 		inputEntity:        make(map[string]*inputEntity),
 	}
