@@ -18,9 +18,9 @@ type dMsgMetaData struct {
 }
 
 type dMsgJSON struct {
-	dMsgType   string
-	dMsgBody   dMsgBody
-	dMsgOrigin string
+	DMsgType   string
+	DMsgBody   dMsgBody
+	DMsgOrigin string
 }
 
 type dMsgBody struct {
@@ -33,15 +33,15 @@ type dMsgBody struct {
 
 func (d *dMsgJSON) getDataMsgDescription() string {
 	//_, id := m.getMetaDataIdentifier()
-	return fmt.Sprintf("JSON message [%s]", d.dMsgType)
+	return fmt.Sprintf("JSON message [%s]", d.DMsgType)
 }
 
 func (d *dMsgJSON) getDataMsgBody() *dMsgBody {
-	return &d.dMsgBody
+	return &d.DMsgBody
 }
 
 func (d *dMsgJSON) getDataMsgOrigin() string {
-	return d.dMsgOrigin
+	return d.DMsgOrigin
 }
 
 type msgID int

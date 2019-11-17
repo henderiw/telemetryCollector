@@ -735,14 +735,14 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			msgBody.Deletes = deletes
 		}
 		m = map[string]interface{}{"notification": m}
-		msgData.dMsgType = "notification update"
-		msgData.dMsgBody = *msgBody
+		msgData.DMsgType = "notification update"
+		msgData.DMsgBody = *msgBody
 	case *pb.SubscribeResponse_SyncResponse:
 		//fmt.Println("##############################################")
 		//fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
-		msgData.dMsgType = "syncResponse"
-		msgData.dMsgBody.SyncResponse = resp.SyncResponse
+		msgData.DMsgType = "syncResponse"
+		msgData.DMsgBody.SyncResponse = resp.SyncResponse
 	default:
 		//fmt.Printf("Response type: %#v \n", resp)
 		//return m, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
@@ -754,9 +754,9 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 	//}
 	//return string(js), nil
 	dMs[0] = &dMsgJSON{
-		dMsgType:   msgData.dMsgType,
-		dMsgBody:   msgData.dMsgBody,
-		dMsgOrigin: origin,
+		DMsgType:   msgData.DMsgType,
+		DMsgBody:   msgData.DMsgBody,
+		DMsgOrigin: origin,
 	}
 	return dMs, nil
 }
