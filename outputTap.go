@@ -139,14 +139,13 @@ func (t *tapOutput) tapOutputLoop() {
 			fmt.Printf("Tap module raw data received: %#v \n", dMsg)
 			d := dMsg.getDataMsgBody()
 			fmt.Printf("Tap module raw data received after function: %#v \n", *d)
-			js, err := json.MarshalIndent(d, "", "  ")
+			js, _ := json.MarshalIndent(&*d, "", "  ")
 			if err != nil {
-				fmt.Printf("Tap module data received: %s \n", js)
-				w.WriteString(string(js))
-				//w.WriteString(out.String())
-			} else {
-				fmt.Printf("Error MarshalIndent: %s \n", err)
+				fmt.Printf("Marshal issue: %s \n", err)
 			}
+			fmt.Printf("Tap module data received: %s \n", js)
+			w.WriteString(string(js))
+			//w.WriteString(out.String())
 
 			w.Flush()
 
