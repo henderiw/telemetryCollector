@@ -16,6 +16,11 @@ import (
 var version = "0.1.0"
 var err error
 
+// system constants
+const (
+	dataChannelDepth = 1000
+)
+
 // initializing logging function
 var tcLog = log.New()
 var tcLogCtxt = tcLog.WithFields(log.Fields{
@@ -29,6 +34,8 @@ var tc tcInfo
 type tcInfo struct {
 	// Configuration File to support the telemtry collector
 	configFile string
+	// Output Capability
+	outputCapabilities map[string](func() outputCapability)
 	// Input Capability
 	inputCapabilities map[string](func() inputCapability)
 	// Input entity keyed by name
@@ -49,12 +56,26 @@ type entity struct {
 	cChan chan<- *cMsg
 }
 
+// outputCapability defines the function definition mapping to the various
+// capabilities the telemetry collector supports.
+// It provides a uniform definition amongst all modules/capabilities the TC supports
+type outputCapability interface {
+	initialize(entityName string, ec entityConfig) (
+		chan<- dMsg, chan<- *cMsg, error)
+}
+
+// outputEntity type defines the specific information elements for the output entity
+type outputEntity struct {
+	entity
+	dataChan chan<- dMsg
+}
+
 // inputCapability defines the function definition mapping to the various
 // capabilities the telemetry collector supports.
 // It provides a uniform definition amongst all modules/capabilities the TC supports
 type inputCapability interface {
-	initialize(entityName string, ec entityConfig,
-		chans []chan<- dMsg) (chan<- *cMsg, error)
+	initialize(entityName string, ec entityConfig, chans []chan<- dMsg) (
+		chan<- *cMsg, error)
 }
 
 // inputEntity type defines the specific information elements for the input entity
@@ -209,7 +230,7 @@ func run() {
 	tcLogCtxt.WithFields(log.Fields{
 		"file":     "telemetryCollector.go",
 		"function": "run",
-	}).Debug(" Bye...")
+	}).Info(" Bye...")
 }
 
 func main() {
@@ -223,6 +244,10 @@ func main() {
 	// Only log the info severity or above.
 	tcLog.SetLevel(log.InfoLevel)
 
+	activeOutputCapability := map[string](func() outputCapability){
+		"tap": tapOutputCapabilityNew,
+	}
+
 	// initializes the active input capabilities the telemetry
 	// collector supports
 	activeInputCapability := map[string](func() inputCapability){
@@ -231,9 +256,10 @@ func main() {
 
 	// initial init of the telemtry collector
 	tc = tcInfo{
-		configFile:        "telemetryCollector.conf",
-		inputCapabilities: activeInputCapability,
-		inputEntity:       make(map[string]*inputEntity),
+		configFile:         "telemetryCollector.conf",
+		outputCapabilities: activeOutputCapability,
+		inputCapabilities:  activeInputCapability,
+		inputEntity:        make(map[string]*inputEntity),
 	}
 
 	// loading/initializing the telemetry collector from the configuration file

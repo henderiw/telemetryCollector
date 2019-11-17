@@ -158,30 +158,6 @@ func (cap *grpcInputCapability) initialize(name string, ec entityConfig, dChans 
 	return cChan, nil
 }
 
-// loadCertificates loads certificates from file.
-func (s *grpcRemoteServer) loadCertificates() ([]tls.Certificate, *x509.CertPool) {
-	if s.tlsCAPem == "" || s.tlsClientCertPem == "" || s.tlsClientKeyPem == "" {
-		tcLogCtxt.Error("ca and cert and key must be set with file locations")
-	}
-
-	certificate, err := tls.LoadX509KeyPair(s.tlsCAPem, s.tlsClientKeyPem)
-	if err != nil {
-		tcLogCtxt.WithError(err).Error("could not load client key pair")
-	}
-
-	certPool := x509.NewCertPool()
-	caFile, err := ioutil.ReadFile(s.tlsCAPem)
-	if err != nil {
-		tcLogCtxt.WithError(err).Error("could not read CA certificate")
-	}
-
-	if ok := certPool.AppendCertsFromPEM(caFile); !ok {
-		tcLogCtxt.Error("failed to append CA certificate")
-	}
-
-	return []tls.Certificate{certificate}, certPool
-}
-
 // grpcRemoteServer
 type grpcRemoteServer struct {
 	name             string
@@ -205,6 +181,30 @@ type grpcRemoteServer struct {
 	// Use to signal that all children have shutdown.
 	childrenDone chan struct{}
 	//cancel       context.CancelFunc
+}
+
+// loadCertificates loads certificates from file.
+func (s *grpcRemoteServer) loadCertificates() ([]tls.Certificate, *x509.CertPool) {
+	if s.tlsCAPem == "" || s.tlsClientCertPem == "" || s.tlsClientKeyPem == "" {
+		tcLogCtxt.Error("ca and cert and key must be set with file locations")
+	}
+
+	certificate, err := tls.LoadX509KeyPair(s.tlsCAPem, s.tlsClientKeyPem)
+	if err != nil {
+		tcLogCtxt.WithError(err).Error("could not load client key pair")
+	}
+
+	certPool := x509.NewCertPool()
+	caFile, err := ioutil.ReadFile(s.tlsCAPem)
+	if err != nil {
+		tcLogCtxt.WithError(err).Error("could not read CA certificate")
+	}
+
+	if ok := certPool.AppendCertsFromPEM(caFile); !ok {
+		tcLogCtxt.Error("failed to append CA certificate")
+	}
+
+	return []tls.Certificate{certificate}, certPool
 }
 
 func (s *grpcRemoteServer) String() string {
@@ -604,55 +604,36 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 				return
 			}
 
-			subRspJSON, _ := subscribeResponseToJSON(subscribeRsp)
-			fmt.Printf("subRspJSON(%s): %s \n", s.name, subRspJSON)
+			dMsgData, err := subscribeResponseParsing(subscribeRsp)
+			if err != nil {
+				tcLogCtxt.WithError(err).WithFields(log.Fields{
+					"file":         "grpcInput.go",
+					"function":     "singleSubscription",
+					"subscription": sub,
+					"reqID":        reqID,
+				}).Error("Subscription parsing failed")
+			}
+			dMsgData.dMsgOrigin = s.name
+			fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgData)
 
-			/*
-				response, ok := subscribeRsp.Response.(*pb.SubscribeResponse_Update)
-				if !ok {
-					return
-				}
-				fmt.Printf("response : %s \n", response)
-			*/
-			/*
-				timestamp := time.Unix(0, response.Update.Timestamp)
-				fmt.Printf("Timestamp : %s \n", timestamp)
-			*/
-			/*
-
-
-				if len(dMs) == 0 {
-					tLogCtxt.WithFields(
-						log.Fields{
-							"file":         "grpcInput.go",
-							"function":     "singleSubscription",
-							"subscription": thisSub,
-							"reqID":        thisReqID,
-						}).Error(
-						"Extracting msg from stream came up empty")
-				}
-
-				if dMs != nil {
-					for _, dM := range dMs {
-						//
-						// Push data onto channel.
-						for _, dataChan := range thisDataChans {
-							//
-							// Make sure that if
-							// we are blocked on
-							// consumer, we still
-							// handle cancel.
-							select {
-							case <-thisCtx.Done():
-								return
-							case dataChan <- dM:
-								continue
-							}
-						}
+			if dMsgData != nil {
+				//
+				// Push data onto channel.
+				for _, dataChan := range dataChans {
+					//
+					// Make sure that if
+					// we are blocked on
+					// consumer, we still
+					// handle cancel.
+					select {
+					case <-ctx.Done():
+						return
+					case dataChan <- dMsgData:
+						continue
 					}
 				}
+			}
 
-			*/
 		}
 	}
 }
@@ -700,20 +681,25 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 
 }
 
-// subscribeResponseToJSON converts a SubscribeResponse into a JSON string
-func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
+// subscribeResponseParsing converts a SubscribeResponse into a JSON object
+//func subscribeResponseParsing(resp *pb.SubscribeResponse) (map[string]interface{}, error) {
+func subscribeResponseParsing(resp *pb.SubscribeResponse) (*dMsgData, error) {
+	msgData := &dMsgData{}
+	msgBody := &dMsgBody{}
 	m := make(map[string]interface{}, 1)
-	var err error
+	//var err error
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
 		//fmt.Println("##############################################")
 		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
+		msgBody.timestamp = notif.Timestamp
 		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
 		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
 			m["path"] = "/" + joinPath(notif.Prefix)
+			msgBody.path = "/" + joinPath(notif.Prefix)
 			//fmt.Printf("Path : %s \n", m["path"])
 		}
 		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
@@ -733,7 +719,10 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 			}
 			m["updates"] = updates
+			msgBody.updates = updates
+
 		}
+
 		if len(notif.Delete) != 0 {
 			//fmt.Println("##############################################")
 			deletes := make([]string, len(notif.Delete))
@@ -741,19 +730,26 @@ func subscribeResponseToJSON(resp *pb.SubscribeResponse) (string, error) {
 				deletes[i] = joinPath(del)
 			}
 			m["deletes"] = deletes
+			msgBody.deletes = deletes
 		}
 		m = map[string]interface{}{"notification": m}
+		msgData.dMsgType = "notification update"
+		msgData.dMsgBody = *msgBody
 	case *pb.SubscribeResponse_SyncResponse:
 		//fmt.Println("##############################################")
 		//fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
+		msgData.dMsgType = "syncResponse"
+		msgData.dMsgBody.syncResponse = resp.SyncResponse
 	default:
 		//fmt.Printf("Response type: %#v \n", resp)
-		return "", fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
+		//return m, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
+		return msgData, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
-	js, err := json.MarshalIndent(m, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(js), nil
+	//js, err := json.MarshalIndent(m, "", "  ")
+	//if err != nil {
+	//	return "", err
+	//}
+	//return string(js), nil
+	return msgData, nil
 }

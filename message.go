@@ -1,8 +1,10 @@
 package main
 
+import "fmt"
+
 type dMsg interface {
-	//getDataMsgDescription() string
-	//getMetaDataPath() (string, error)
+	getDataMsgDescription() string
+	getMataMsg() *dMsgData
 	//getMetaDataIdentifier() (string, error)
 	//getMetaData() *dataMsgMetaData
 }
@@ -12,6 +14,29 @@ type dMsg interface {
 type dMsgMetaData struct {
 	Path       string
 	Identifier string
+}
+
+type dMsgData struct {
+	dMsgType   string
+	dMsgBody   dMsgBody
+	dMsgOrigin string
+}
+
+type dMsgBody struct {
+	timestamp    int64
+	path         string
+	updates      map[string]interface{}
+	deletes      []string
+	syncResponse bool
+}
+
+func (d *dMsgData) getDataMsgDescription() string {
+	//_, id := m.getMetaDataIdentifier()
+	return fmt.Sprintf("JSON message [%s]", d.dMsgType)
+}
+
+func (d *dMsgData) getMataMsg() *dMsgData {
+	return d
 }
 
 type msgID int
