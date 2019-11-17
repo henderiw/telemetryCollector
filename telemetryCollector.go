@@ -36,6 +36,8 @@ type tcInfo struct {
 	configFile string
 	// Output Capability
 	outputCapabilities map[string](func() outputCapability)
+	// Input entity keyed by name
+	outputEntity map[string]*outputEntity
 	// Input Capability
 	inputCapabilities map[string](func() inputCapability)
 	// Input entity keyed by name
@@ -108,6 +110,66 @@ func loadingConfig() error {
 	ec.config = cfg
 
 	// Loading the output sections - To do
+	for _, section := range cfg.GetSections() {
+		if section == "default" {
+			continue
+		}
+		goal, err := cfg.GetString(section, "goal")
+		if err != nil {
+			return fmt.Errorf("Sections require a 'goal': %v", err)
+		}
+		if goal != "output" {
+			continue
+		}
+		tcLogCtxt.WithFields(log.Fields{
+			"file":     "telemetryCollector.go",
+			"function": "loadingConfig",
+			"section":  section,
+			"goal":     goal,
+		}).Info("Processing section, stage ...")
+
+		goalType, err := cfg.GetString(section, "type")
+		if err != nil {
+			return fmt.Errorf("Sections require a 'type' attribute: %v", err)
+		}
+		tcLogCtxt.WithFields(log.Fields{
+			"file":     "telemetryCollector.go",
+			"function": "loadingConfig",
+			"section":  section,
+			"goal":     goal,
+			"type":     goalType,
+		}).Info("Processing section, stage, type ...")
+		outFunction, ok := tc.outputCapabilities[goalType]
+		if !ok {
+			return fmt.Errorf("Unsupported 'type' attribute for input module [%s]", goalType)
+		}
+		entityFunction := outFunction()
+
+		dChan, cChan, err := entityFunction.initialize(section, ec)
+		if err != nil {
+			tcLogCtxt.WithError(err).WithFields(log.Fields{
+				"file":     "telemetryCollector.go",
+				"function": "loadingConfig",
+				"section":  section,
+				"goal":     goal,
+				"type":     goalType,
+			}).Error("dataCollector failed to start up section")
+			continue
+		}
+		tcLogCtxt.WithFields(log.Fields{
+			"file":     "telemetryCollector.go",
+			"function": "loadingConfig",
+			"section":  section,
+			"goal":     goal,
+			"type":     goalType,
+		}).Info("dataCollector starting up section")
+		ie := new(outputEntity)
+		ie.name = section
+		ie.cChan = cChan
+		ie.dataChan = dChan
+		dataChans = append(dataChans, dChan)
+		tc.outputEntity[section] = ie
+	}
 
 	// Loading the input sections
 	for _, section := range cfg.GetSections() {
