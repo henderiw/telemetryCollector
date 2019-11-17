@@ -36,8 +36,8 @@ func (d *dMsgJSON) getDataMsgDescription() string {
 	return fmt.Sprintf("JSON message [%s]", d.dMsgType)
 }
 
-func (d *dMsgJSON) getDataMsgBody() dMsgBody {
-	return d.dMsgBody
+func (d *dMsgJSON) getDataMsgBody() *dMsgBody {
+	return &d.dMsgBody
 }
 
 func (d *dMsgJSON) getDataMsgOrigin() string {
