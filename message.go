@@ -4,7 +4,7 @@ import "fmt"
 
 type dMsg interface {
 	getDataMsgDescription() string
-	getMataMsg() *dMsgData
+	getDataMsg() *dMsgData
 	//getMetaDataIdentifier() (string, error)
 	//getMetaData() *dataMsgMetaData
 }
@@ -35,7 +35,7 @@ func (d *dMsgData) getDataMsgDescription() string {
 	return fmt.Sprintf("JSON message [%s]", d.dMsgType)
 }
 
-func (d *dMsgData) getMataMsg() *dMsgData {
+func (d *dMsgData) getDataMsg() *dMsgData {
 	return d
 }
 

@@ -614,7 +614,8 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 				}).Error("Subscription parsing failed")
 			}
 			dMsgData.dMsgOrigin = s.name
-			fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgData)
+			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgData)
+			fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
 
 			if dMsgData != nil {
 				//
