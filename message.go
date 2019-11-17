@@ -4,7 +4,8 @@ import "fmt"
 
 type dMsg interface {
 	getDataMsgDescription() string
-	getDataMsg() *dMsgData
+	getDataMsgBody() *dMsgBody
+	getDataMsgOrigin() string
 	//getMetaDataIdentifier() (string, error)
 	//getMetaData() *dataMsgMetaData
 }
@@ -16,7 +17,7 @@ type dMsgMetaData struct {
 	Identifier string
 }
 
-type dMsgData struct {
+type dMsgJSON struct {
 	dMsgType   string
 	dMsgBody   dMsgBody
 	dMsgOrigin string
@@ -30,13 +31,17 @@ type dMsgBody struct {
 	syncResponse bool
 }
 
-func (d *dMsgData) getDataMsgDescription() string {
+func (d *dMsgJSON) getDataMsgDescription() string {
 	//_, id := m.getMetaDataIdentifier()
 	return fmt.Sprintf("JSON message [%s]", d.dMsgType)
 }
 
-func (d *dMsgData) getDataMsg() *dMsgData {
-	return d
+func (d *dMsgJSON) getDataMsgBody() *dMsgBody {
+	return &d.dMsgBody
+}
+
+func (d *dMsgJSON) getDataMsgOrigin() string {
+	return d.dMsgOrigin
 }
 
 type msgID int

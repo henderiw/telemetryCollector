@@ -604,7 +604,7 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 				return
 			}
 
-			dMsgData, err := subscribeResponseParsing(subscribeRsp)
+			dMsgs, err := subscribeResponseParsing(subscribeRsp, s.name)
 			if err != nil {
 				tcLogCtxt.WithError(err).WithFields(log.Fields{
 					"file":         "grpcInput.go",
@@ -613,24 +613,25 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 					"reqID":        reqID,
 				}).Error("Subscription parsing failed")
 			}
-			dMsgData.dMsgOrigin = s.name
 			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgData)
 			fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
 
-			if dMsgData != nil {
-				//
-				// Push data onto channel.
-				for _, dataChan := range dataChans {
+			if dMsgs != nil {
+				for _, dMsg := range dMsgs {
 					//
-					// Make sure that if
-					// we are blocked on
-					// consumer, we still
-					// handle cancel.
-					select {
-					case <-ctx.Done():
-						return
-					case dataChan <- dMsgData:
-						continue
+					// Push data onto channel.
+					for _, dataChan := range dataChans {
+						//
+						// Make sure that if
+						// we are blocked on
+						// consumer, we still
+						// handle cancel.
+						select {
+						case <-ctx.Done():
+							return
+						case dataChan <- dMsg:
+							continue
+						}
 					}
 				}
 			}
@@ -682,10 +683,11 @@ func convertUpdate(update *pb.Update) (interface{}, error) {
 
 }
 
-// subscribeResponseParsing converts a SubscribeResponse into a JSON object
+// subscribeResponseParsing converts a SubscribeResponse into a JSON object data Message
 //func subscribeResponseParsing(resp *pb.SubscribeResponse) (map[string]interface{}, error) {
-func subscribeResponseParsing(resp *pb.SubscribeResponse) (*dMsgData, error) {
-	msgData := &dMsgData{}
+func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg, error) {
+	dMs := make([]dMsg, 1)
+	msgData := &dMsgJSON{}
 	msgBody := &dMsgBody{}
 	m := make(map[string]interface{}, 1)
 	//var err error
@@ -745,12 +747,17 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse) (*dMsgData, error) {
 	default:
 		//fmt.Printf("Response type: %#v \n", resp)
 		//return m, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
-		return msgData, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
+		return dMs, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
 	//js, err := json.MarshalIndent(m, "", "  ")
 	//if err != nil {
 	//	return "", err
 	//}
 	//return string(js), nil
-	return msgData, nil
+	dMs[0] = &dMsgJSON{
+		dMsgType:   msgData.dMsgType,
+		dMsgBody:   msgData.dMsgBody,
+		dMsgOrigin: origin,
+	}
+	return dMs, nil
 }

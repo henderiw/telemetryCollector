@@ -130,14 +130,14 @@ func (t *tapOutput) tapOutputLoop() {
 
 			stats.msgsOK++
 			msgType := dMsg.getDataMsgDescription()
+			o := dMsg.getDataMsgOrigin()
 
-			w.WriteString(fmt.Sprintf(
-				"\n------- %v -------\n", time.Now()))
-			w.WriteString(fmt.Sprintf("Summary: %s\n", msgType))
+			w.WriteString(fmt.Sprintf("\n------- %v -------\n", time.Now()))
+			w.WriteString(fmt.Sprintf("From : %s ; Summary: %s\n", o, msgType))
 			//var out bytes.Buffer
 			//json.Indent(&out, b, "", "    ")
 			fmt.Printf("Tap module raw data received: %#v \n", dMsg)
-			d := dMsg.getDataMsg()
+			d := dMsg.getDataMsgBody()
 			js, _ := json.MarshalIndent(d, "", "  ")
 			fmt.Printf("Tap module data received: %s \n", js)
 			w.WriteString(string(js))
