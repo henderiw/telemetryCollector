@@ -141,6 +141,7 @@ func (t *tapOutput) tapOutputLoop() {
 			fmt.Printf("Tap module raw data received after function: %#v \n", *d)
 			//js, _ := json.MarshalIndent(&*d, "", "  ")
 			js, err := json.Marshal(dMsg)
+			fmt.Printf("Tap module dMsg: %#v \n", dMsg)
 			if err != nil {
 				fmt.Printf("Marshal issue: %s \n", err)
 			}
