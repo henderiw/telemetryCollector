@@ -145,7 +145,7 @@ func (t *tapOutput) tapOutputLoop() {
 			if err != nil {
 				fmt.Printf("Marshal issue: %s \n", err)
 			}
-			fmt.Printf("Tap module data received: %s \n", js)
+			fmt.Printf("Tap module data received: \n %s \n", js)
 			w.WriteString(string(js))
 			//w.WriteString(out.String())
 
