@@ -613,13 +613,12 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 					"reqID":        reqID,
 				}).Error("Subscription parsing failed")
 			}
-			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgData)
+			fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
 			fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
 
 			if dMsgs != nil {
 				for _, dMsg := range dMsgs {
-					//
-					// Push data onto channel.
+					// Push data onto channel to output modules
 					for _, dataChan := range dataChans {
 						//
 						// Make sure that if
@@ -697,12 +696,12 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		m["timestamp"] = notif.Timestamp
-		msgBody.timestamp = notif.Timestamp
+		msgBody.Timestamp = notif.Timestamp
 		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
 		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
 			m["path"] = "/" + joinPath(notif.Prefix)
-			msgBody.path = "/" + joinPath(notif.Prefix)
+			msgBody.Path = "/" + joinPath(notif.Prefix)
 			//fmt.Printf("Path : %s \n", m["path"])
 		}
 		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
@@ -722,7 +721,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 			}
 			m["updates"] = updates
-			msgBody.updates = updates
+			msgBody.Updates = updates
 
 		}
 
@@ -733,7 +732,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 				deletes[i] = joinPath(del)
 			}
 			m["deletes"] = deletes
-			msgBody.deletes = deletes
+			msgBody.Deletes = deletes
 		}
 		m = map[string]interface{}{"notification": m}
 		msgData.dMsgType = "notification update"
@@ -743,7 +742,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 		//fmt.Println("SubscribeResponse_SyncResponse")
 		m["syncResponse"] = resp.SyncResponse
 		msgData.dMsgType = "syncResponse"
-		msgData.dMsgBody.syncResponse = resp.SyncResponse
+		msgData.dMsgBody.SyncResponse = resp.SyncResponse
 	default:
 		//fmt.Printf("Response type: %#v \n", resp)
 		//return m, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)

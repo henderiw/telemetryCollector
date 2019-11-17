@@ -24,11 +24,11 @@ type dMsgJSON struct {
 }
 
 type dMsgBody struct {
-	timestamp    int64
-	path         string
-	updates      map[string]interface{}
-	deletes      []string
-	syncResponse bool
+	Timestamp    int64
+	Path         string
+	Updates      map[string]interface{}
+	Deletes      []string
+	SyncResponse bool
 }
 
 func (d *dMsgJSON) getDataMsgDescription() string {
