@@ -116,7 +116,7 @@ func loadingConfig() error {
 
 	tcMonitorInit()
 
-	go tcMonitorInit(ec)
+	go tcMonitorStart(ec)
 
 	// Loading the output sections - To do
 	for _, section := range cfg.GetSections() {
