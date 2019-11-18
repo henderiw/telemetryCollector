@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"text/template"
+	"time"
 
 	"github.com/dlintw/goconf"
 	log "github.com/sirupsen/logrus"
@@ -29,6 +30,8 @@ var tcLogCtxt = tcLog.WithFields(log.Fields{
 
 // tcInfo type defines the information of the telemetry Collector
 type tcInfo struct {
+	// Start time
+	Started time.Time
 	// Configuration File to support the telemtry collector
 	configFile string
 	// Output Capability
@@ -39,6 +42,8 @@ type tcInfo struct {
 	inputCapabilities map[string](func() inputCapability)
 	// Input entity keyed by name
 	inputEntity map[string]*inputEntity
+	// Monitoring the telemtry collector via prometheus
+	monitor *tcMonitor
 }
 
 // tc holds the information of the telemtry Collector
@@ -108,6 +113,10 @@ func loadingConfig() error {
 	}
 
 	ec.config = cfg
+
+	tcMonitorInit()
+
+	go tcMonitorInit(ec)
 
 	// Loading the output sections - To do
 	for _, section := range cfg.GetSections() {
@@ -318,6 +327,7 @@ func main() {
 
 	// initial init of the telemtry collector
 	tc = tcInfo{
+		Started:            time.Now(),
 		configFile:         "telemetryCollector.conf",
 		outputCapabilities: activeOutputCapability,
 		outputEntity:       make(map[string]*outputEntity),
