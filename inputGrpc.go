@@ -613,8 +613,8 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 					"reqID":        reqID,
 				}).Error("Subscription parsing failed")
 			}
-			fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
-			fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
+			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
+			//fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
 
 			if dMsgs != nil {
 				for _, dMsg := range dMsgs {
