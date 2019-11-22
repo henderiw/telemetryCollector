@@ -177,7 +177,7 @@ func (t *tapOutput) tapOutputLoop() {
 				return
 
 			default:
-				tcLogCtxt.Info("tap feeder loop, unknown ctrl message")
+				tcLogCtxt.Info("tap loop, unknown ctrl message")
 			}
 		}
 
