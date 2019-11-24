@@ -118,7 +118,7 @@ func (t *tapOutput) tapOutputLoop() {
 
 			if !ok {
 				// Channel has been closed. Our demise
-				// is near. SHUTDOWN is likely to be
+				// is near. SHUTDOWN is likely to be done
 				t.dChan = nil
 				continue
 			}

@@ -323,7 +323,8 @@ func main() {
 	// initializes the active input capabilities the telemetry
 	// collector supports
 	activeInputCapability := map[string](func() inputCapability){
-		"grpc": grpcInputCapabilityNew,
+		"grpc":  grpcInputCapabilityNew,
+		"kafka": kafkaInputCapabilityNew,
 	}
 
 	// initial init of the telemtry collector
