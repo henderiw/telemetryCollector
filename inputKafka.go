@@ -204,7 +204,7 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 					}()
 				}
 
-				fmt.Printf("Kafka Data: %#v \n", data)
+				fmt.Printf("Kafka Data: %s \n", data.Value)
 
 				/*
 
