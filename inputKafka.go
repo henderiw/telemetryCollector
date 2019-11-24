@@ -75,7 +75,7 @@ func (k *kafkaInputConsumer) initialize(name string, ec entityConfig, dChans []c
 func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans []chan<- dMsg) {
 	var consumer *cluster.Consumer
 	var client *cluster.Client
-	var notification <-chan *cluster.Notification
+	var notifications <-chan *cluster.Notification
 	var errorChan <-chan error
 	var msgChan <-chan *sarama.ConsumerMessage
 	var checkpointMsg *sarama.ConsumerMessage
@@ -88,6 +88,8 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 	checkpointFlushScheduled := false
 
 	for {
+
+		//var r bool
 
 		// Get a default configuration
 		clusterConfig := cluster.NewConfig()
@@ -130,7 +132,7 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 
 		if consumer != nil {
 			// Listen to notifications, for visibility only
-			notification = consumer.Notifications()
+			notifications = consumer.Notifications()
 
 			// Listen to and log errors
 			errorChan = consumer.Errors()
@@ -157,9 +159,9 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 				timeout <- true
 			}()
 		}
-
+		restart := false
 		for {
-			restart := false
+
 			select {
 			//
 			// Handle rebalancing, shutdown, and retry in
@@ -235,7 +237,30 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 						}
 					}
 				*/
+			case notification := <-notifications:
+				//
+				// Rebalancing activity. Setup and
+				// teardown partition readers
+				// according to rebalance.
+				tcLogCtxt.WithFields(
+					log.Fields{
+						"name":     k.name,
+						"topic":    k.topic,
+						"group":    k.consumerGroup,
+						"brokers":  k.brokerList,
+						"claimed":  notification.Claimed,
+						"released": notification.Released,
+						"current":  notification.Current,
+					}).Info("kafka consumer, notification")
 
+			case msg := <-cChan:
+				if k.kafkaHandleCtrlMsg(msg) {
+					return
+				}
+			}
+
+			if restart {
+				break
 			}
 
 		}
