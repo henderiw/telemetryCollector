@@ -26,6 +26,7 @@ type dMsgJSON struct {
 
 type dMsgBody struct {
 	Timestamp    int64
+	Node         string
 	Path         string
 	Updates      map[string]interface{}
 	Deletes      []string

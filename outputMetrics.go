@@ -71,11 +71,11 @@ type metricsSpecNode struct {
 }
 
 func metricOutputCapabilityNew() outputCapability {
-	return &metricOutput{}
+	return &metricsOutput{}
 }
 
 // Setup a tap output entity
-func (m *metricOutput) initialize(name string, ec entityConfig) (
+func (m *metricsOutput) initialize(name string, ec entityConfig) (
 	chan<- dMsg, chan<- *cMsg, error) {
 
 	var err error
@@ -200,7 +200,7 @@ func (m *metricOutput) initialize(name string, ec entityConfig) (
 
 }
 
-func (m *metricOutput) metricLoop() {
+func (m *metricsOutput) metricLoop() {
 	var stats msgStats
 
 	// Kick off data handlers and run control loop
@@ -243,7 +243,7 @@ func (m *metricOutput) metricLoop() {
 
 }
 
-func (m *metricOutput) buildSpecDB() error {
+func (m *metricsOutput) buildSpecDB() error {
 
 	m.inputSpec.specDB = make(map[string]*metricsSpecNode)
 
@@ -265,7 +265,7 @@ func (m *metricOutput) buildSpecDB() error {
 	return nil
 }
 
-func (m *metricOutput) buildSpecDBSubtree(
+func (m *metricsOutput) buildSpecDBSubtree(
 	node *metricsSpecNode, path string, conjoinsymbol string) error {
 
 	return nil

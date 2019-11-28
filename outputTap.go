@@ -165,7 +165,7 @@ func (t *tapOutput) tapLoop() {
 			case shutdown:
 
 				w.Flush()
-				tcLogCtxt.Info("tap feeder loop, rxed SHUTDOWN")
+				tcLogCtxt.Info("tap feeder loop, received shutdown")
 
 				// Dump detailed stats here
 
