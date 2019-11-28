@@ -6,6 +6,7 @@ type dMsg interface {
 	getDataMsgDescription() string
 	getDataMsgBody() *dMsgBody
 	getDataMsgOrigin() string
+	produceMetrics(*metricsSpec, metricsOutputHandler, metricsOutputContext) error
 	//getMetaDataIdentifier() (string, error)
 	//getMetaData() *dataMsgMetaData
 }
@@ -38,6 +39,38 @@ func (d *dMsgJSON) getDataMsgDescription() string {
 
 func (d *dMsgJSON) getDataMsgBody() *dMsgBody {
 	return &d.DMsgBody
+}
+
+func (d *dMsgJSON) produceMetrics(spec *metricsSpec, outputHandler metricsOutputHandler, buf metricsOutputContext,
+) error {
+
+	node, ok := spec.specDB[d.DMsgBody.Path]
+	if !ok {
+		return nil
+	}
+	tags := make([]metricsAtom, 2, 8)
+	tags[0].key = "Path"
+	tags[0].val = d.DMsgBody.Path
+	tags[1].key = "Producer"
+	tags[1].val = d.DMsgOrigin
+
+	return d.produceJSONMetrics(
+		spec,
+		node,
+		outputHandler,
+		tags,
+		buf)
+}
+
+func (d *dMsgJSON) produceJSONMetrics(
+	spec *metricsSpec,
+	node *metricsSpecNode,
+	outputHandler metricsOutputHandler,
+	tags []metricsAtom,
+	buf metricsOutputContext) error {
+
+	return nil
+
 }
 
 func (d *dMsgJSON) getDataMsgOrigin() string {

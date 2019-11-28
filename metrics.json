@@ -1,0 +1,28 @@
+[
+	{
+		"Path" : "",
+		"Updates" : [
+            {"name": "in-1024b-to-1518b-frames", "track": true},
+            {"name": "in-128b-to-255b-frames", "track": true},
+            {"name": "in-1519b-or-longer-frames", "track": true},
+            {"name": "in-256b-to-511b-frames", "track": true},
+            {"name": "in-512b-to-1023b-frames", "track": true},
+            {"name": "in-64b-frames", "track": true},
+            {"name": "in-65b-to-127b-frames", "track": true},
+            {"name": "in-crc-errors", "track": true},
+            {"name": "in-65b-to-127b-frames", "track": true},
+            {"name": "in-fragment-frames", "track": true},
+            {"name": "in-jabber-frames", "track": true},
+            {"name": "in-mac-pause-frames", "track": true},
+            {"name": "in-oversize-frames", "track": true},
+            {"name": "out-1024b-to-1518b-frames", "track": true},
+            {"name": "out-128b-to-255b-frames", "track": true},
+            {"name": "out-1519b-or-longer-frames", "track": true},
+            {"name": "out-256b-to-511b-frames", "track": true},
+            {"name": "out-512b-to-1023b-frames", "track": true},
+            {"name": "out-64b-frames", "track": true},
+            {"name": "out-65b-to-127b-frames", "track": true},
+            {"name": "out-mac-pause-frames", "track": true}
+        ]
+    }
+]

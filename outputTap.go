@@ -33,7 +33,7 @@ func (t *tapOutput) initialize(name string, ec entityConfig) (
 
 	t.name = name
 
-	t.filename, err = ec.config.GetString(name, "file")
+	t.filename, err = ec.config.GetString(name, "outputFile")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -59,13 +59,13 @@ func (t *tapOutput) initialize(name string, ec entityConfig) (
 	t.cChan = make(chan *cMsg)
 	t.dChan = make(chan dMsg, t.dataChannelDepth)
 
-	go t.tapOutputLoop()
+	go t.tapLoop()
 
 	return t.dChan, t.cChan, nil
 
 }
 
-func (t *tapOutput) tapOutputLoop() {
+func (t *tapOutput) tapLoop() {
 	var stats msgStats
 
 	// Period, in seconds, to dump stats if only counting.

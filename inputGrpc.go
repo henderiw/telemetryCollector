@@ -688,21 +688,19 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 	dMs := make([]dMsg, 1)
 	msgData := &dMsgJSON{}
 	msgBody := &dMsgBody{}
-	m := make(map[string]interface{}, 1)
-	//var err error
+	msgData.DMsgBody.Node = origin
+
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
 		//fmt.Println("##############################################")
 		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
-		m["timestamp"] = notif.Timestamp
 		msgBody.Timestamp = notif.Timestamp
 		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
-		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
+		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
-			m["path"] = "/" + joinPath(notif.Prefix)
 			msgBody.Path = "/" + joinPath(notif.Prefix)
-			//fmt.Printf("Path : %s \n", m["path"])
+			fmt.Printf("Path : %s \n", msgBody.Path)
 		}
 		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
@@ -720,7 +718,6 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 
 				updates[joinPath(update.Path)], err = convertUpdate(update)
 			}
-			m["updates"] = updates
 			msgBody.Updates = updates
 
 		}
@@ -731,21 +728,17 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			for i, del := range notif.Delete {
 				deletes[i] = joinPath(del)
 			}
-			m["deletes"] = deletes
 			msgBody.Deletes = deletes
 		}
-		m = map[string]interface{}{"notification": m}
 		msgData.DMsgType = "notification update"
 		msgData.DMsgBody = *msgBody
 	case *pb.SubscribeResponse_SyncResponse:
 		//fmt.Println("##############################################")
 		//fmt.Println("SubscribeResponse_SyncResponse")
-		m["syncResponse"] = resp.SyncResponse
 		msgData.DMsgType = "syncResponse"
 		msgData.DMsgBody.SyncResponse = resp.SyncResponse
 	default:
 		//fmt.Printf("Response type: %#v \n", resp)
-		//return m, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 		return dMs, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
 	//js, err := json.MarshalIndent(m, "", "  ")
@@ -753,6 +746,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 	//	return "", err
 	//}
 	//return string(js), nil
+
 	dMs[0] = &dMsgJSON{
 		DMsgType:   msgData.DMsgType,
 		DMsgBody:   msgData.DMsgBody,
