@@ -701,7 +701,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 	dMs := make([]dMsg, 1)
 	msgData := &dMsgJSON{}
 	msgBody := &dMsgBody{}
-	msgData.DMsgBody.Node = origin
+	msgBody.Node = origin
 
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
@@ -720,9 +720,9 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			//fmt.Println("##############################################")
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Println("##############################################")
-				fmt.Printf("Update : %s \n", update)
-				fmt.Printf("Update path : %s \n", joinPath(update.Path, "full"))
+				//fmt.Println("##############################################")
+				//fmt.Printf("Update : %s \n", update)
+				//fmt.Printf("Update path : %s \n", joinPath(update.Path, "full"))
 				//c, err := convertUpdate(update)
 				//if err != nil {
 				//	return "", err
