@@ -639,10 +639,23 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 	}
 }
 
-func joinPath(path *pb.Path) string {
+func joinPath(path *pb.Path, info string) string {
 	var xpath []string
+	var end int
+	var start int
 	//fmt.Printf("Path Elem length: %d \n", len(path.Elem))
-	for i := 0; i < len(path.Elem); i++ {
+	switch info {
+	case "full":
+		start = 0
+		end = len(path.Elem)
+	case "first":
+		start = 0
+		end = len(path.Elem) - 1
+	case "last":
+		start = len(path.Elem) - 1
+		end = len(path.Elem)
+	}
+	for i := start; i < end; i++ {
 		//fmt.Printf("Elem Name : %d : %s \n", i, path.Elem[i].Name)
 		elementString := path.Elem[i].Name
 		if path.Elem[i].Key != nil {
@@ -699,7 +712,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
 		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
-			msgBody.Path = "/" + joinPath(notif.Prefix)
+			msgBody.Path = "/" + joinPath(notif.Prefix, "full")
 			fmt.Printf("Path : %s \n", msgBody.Path)
 		}
 		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
@@ -709,14 +722,21 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			for _, update := range notif.Update {
 				fmt.Println("##############################################")
 				fmt.Printf("Update : %s \n", update)
-				fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				fmt.Printf("Update path : %s \n", joinPath(update.Path, "full"))
 				//c, err := convertUpdate(update)
 				//if err != nil {
 				//	return "", err
 				//}
 				//fmt.Printf("Update path : %s \n", c)
 
-				updates[joinPath(update.Path)], err = convertUpdate(update)
+				if notif.Prefix == nil {
+					path1 := joinPath(update.Path, "first")
+					path2 := joinPath(update.Path, "last")
+					msgBody.Path = path1
+					updates[path2], err = convertUpdate(update)
+				} else {
+					updates[joinPath(update.Path, "full")], err = convertUpdate(update)
+				}
 
 			}
 			msgBody.Updates = updates
@@ -727,7 +747,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			//fmt.Println("##############################################")
 			deletes := make([]string, len(notif.Delete))
 			for i, del := range notif.Delete {
-				deletes[i] = joinPath(del)
+				deletes[i] = joinPath(del, "full")
 			}
 			msgBody.Deletes = deletes
 		}
