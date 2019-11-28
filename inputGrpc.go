@@ -709,7 +709,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 			for _, update := range notif.Update {
 				//fmt.Println("##############################################")
 				//fmt.Printf("Update : %s \n", update)
-				//fmt.Printf("Update path : %s \n", joinPath(update.Path))
+				fmt.Printf("Update path : %s \n", joinPath(update.Path))
 				//c, err := convertUpdate(update)
 				//if err != nil {
 				//	return "", err
@@ -717,6 +717,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 				//fmt.Printf("Update path : %s \n", c)
 
 				updates[joinPath(update.Path)], err = convertUpdate(update)
+
 			}
 			msgBody.Updates = updates
 
