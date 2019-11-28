@@ -205,6 +205,24 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 				}
 
 				fmt.Printf("Kafka Data: %s \n", data.Value)
+				d := &dMsgBody{}
+				err := json.Unmarshal([]byte(data.Value), d)
+				if err != nil {
+					tcLogCtxt.WithError(err).WithFields(
+						log.Fields{
+							"name":    k.name,
+							"topic":   k.topic,
+							"group":   k.consumerGroup,
+							"brokers": k.brokerList,
+						}).Error("unmarshal error")
+				}
+				fmt.Printf("Kafka Data Timestamp: %d \n", d.Timestamp)
+				fmt.Printf("Kafka Data Node: %s \n", d.Node)
+				fmt.Printf("Kafka Data Path: %s \n", d.Path)
+				for value, update := range d.Updates {
+					fmt.Printf("Kafka Data Update Key: %s \n", update)
+					fmt.Printf("Kafka Data Update Value: %s \n", value)
+				}
 
 				/*
 
