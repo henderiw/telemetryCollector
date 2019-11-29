@@ -216,45 +216,49 @@ func (k *kafkaInputConsumer) kafkaConsumerConnection(cChan <-chan *cMsg, dChans 
 							"brokers": k.brokerList,
 						}).Error("unmarshal error")
 				}
-				fmt.Printf("Kafka Data Timestamp: %d \n", d.Timestamp)
-				fmt.Printf("Kafka Data Node: %s \n", d.Node)
-				fmt.Printf("Kafka Data Path: %s \n", d.Path)
-				for value, update := range d.Updates {
-					fmt.Printf("Kafka Data Update Key: %s \n", update)
-					fmt.Printf("Kafka Data Update Value: %s \n", value)
+				msg := &dMsgJSON{
+					DMsgBody:   *d,
+					DMsgOrigin: d.Node,
 				}
-
 				/*
-
-					for i, dChan := range dChans {
-						if cap(dChan) == len(dChan) {
-							//
-							// Data channel full; blocking.
-							// If we choose to add tail drop option to avoid
-							// head-of-line blocking, this is where we would
-							// drop.
-							tcLogCtxt.WithFields(
-								log.Fields{
-									"name":    k.name,
-									"topic":   k.topic,
-									"group":   k.consumerGroup,
-									"brokers": k.brokerList,
-									"channel": i,
-								}).Debug("kafka consumer overrun (increase 'datachanneldepth'?)")
-						}
-						//
-						// Pass it on. Make sure we handle shutdown
-						// gracefully too.
-						select {
-						case dChan <- data:
-							continue
-						case msg := <-cChan:
-							if k.kafkaHandleCtrlMsg(msg) {
-								return
-							}
-						}
+					fmt.Printf("Kafka Data Timestamp: %d \n", d.Timestamp)
+					fmt.Printf("Kafka Data Node: %s \n", d.Node)
+					fmt.Printf("Kafka Data Path: %s \n", d.Path)
+					for update, value := range d.Updates {
+						fmt.Printf("Kafka Data Update Key: %s \n", update)
+						fmt.Printf("Kafka Data Update Value: %s \n", value)
 					}
 				*/
+
+				for i, dChan := range dChans {
+					if cap(dChan) == len(dChan) {
+						//
+						// Data channel full; blocking.
+						// If we choose to add tail drop option to avoid
+						// head-of-line blocking, this is where we would
+						// drop.
+						tcLogCtxt.WithFields(
+							log.Fields{
+								"name":    k.name,
+								"topic":   k.topic,
+								"group":   k.consumerGroup,
+								"brokers": k.brokerList,
+								"channel": i,
+							}).Debug("kafka consumer overrun (increase 'datachanneldepth'?)")
+					}
+					//
+					// Pass it on. Make sure we handle shutdown
+					// gracefully too.
+					select {
+					case dChan <- msg:
+						continue
+					case msg := <-cChan:
+						if k.kafkaHandleCtrlMsg(msg) {
+							return
+						}
+					}
+				}
+
 			case notification := <-notifications:
 				//
 				// Rebalancing activity. Setup and

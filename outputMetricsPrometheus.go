@@ -219,9 +219,9 @@ func (p *metricsPrometheusOutputHandler) worker(m *metricsOutput) {
 			// We're being signalled to leave.
 			tcLogCtxt.WithFields(
 				log.Fields{
-					"name":    m.name,
-					"output":  m.output,
-					"file":    m.inputSpecFile,
+					"name":   m.name,
+					"output": m.output,
+					//"file":    m.inputSpecFile,
 					"pushURL": p.pushURL,
 				}).Info("metrics prometheus worker exiting")
 			return
@@ -238,25 +238,28 @@ func (p *metricsPrometheusOutputHandler) worker(m *metricsOutput) {
 				m.dChan = nil
 				continue
 			}
+			fmt.Printf("Msg: %s \n", msg)
 
 			//
 			// Make sure we clear any lefto over message (only on
 			// error)
 			buf.Reset()
-			err := msg.produceMetrics(&m.inputSpec, m.outputHandler, buf)
-			if err != nil {
-				//
-				// We should count these and export them from meta
-				// monitoring
-				tcLogCtxt.WithError(err).WithFields(
-					log.Fields{
-						"name":    m.name,
-						"output":  m.output,
-						"file":    m.inputSpecFile,
-						"pushURL": p.pushURL,
-					}).Error("message producing metrics")
-				continue
-			}
+			/*
+				err := msg.produceMetrics(&m.inputSpec, m.outputHandler, buf)
+				if err != nil {
+					//
+					// We should count these and export them from meta
+					// monitoring
+					tcLogCtxt.WithError(err).WithFields(
+						log.Fields{
+							"name":    m.name,
+							"output":  m.output,
+							//"file":    m.inputSpecFile,
+							"pushURL": p.pushURL,
+						}).Error("message producing metrics")
+					continue
+				}
+			*/
 		}
 	}
 }
