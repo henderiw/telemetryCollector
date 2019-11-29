@@ -129,7 +129,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				fields[u] = i
 			}
 
-			pt, err := client.NewPoint("interface_stats", tags, fields, time.Unix(0, data.Timestamp*int64(time.Nanosecond)))
+			pt, err := client.NewPoint("interface_stats", tags, fields, time.Unix(data.Timestamp, 0))
 
 			bp.AddPoint(pt)
 
