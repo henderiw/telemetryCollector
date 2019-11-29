@@ -710,7 +710,7 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 		notif := resp.Update
 		msgBody.Timestamp = notif.Timestamp
 		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
-		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
+		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
 			msgBody.Path = "/" + joinPath(notif.Prefix, "full")
 			fmt.Printf("Path : %s \n", msgBody.Path)
