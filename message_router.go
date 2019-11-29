@@ -73,7 +73,10 @@ func (r *dataMsgRouter) handleMsg(msg dMsg, timeout *time.Timer) {
 
 func (r *dataMsgRouter) run() {
 
-	r.logctx.Debug("dataMsg router running")
+	tcLogCtxt.WithFields(log.Fields{
+		"file":     "message_router.go",
+		"function": "run",
+	}).Info("dataMsg router running")
 
 	//
 	// Setup stopped timer once.
@@ -85,7 +88,10 @@ func (r *dataMsgRouter) run() {
 		case <-r.shutdownChan:
 			//
 			// We're done, and queues all drained
-			r.logctx.Debug("dataMsg router shutting down")
+			tcLogCtxt.WithFields(log.Fields{
+				"file":     "message_router.go",
+				"function": "run",
+			}).Info("dataMsg router shutting down")
 			//
 			// Drain queues. We don't currently close the dataChan
 			// before we send shutdown on ctrl chan, but we do
@@ -101,7 +107,10 @@ func (r *dataMsgRouter) run() {
 				// batch of messages, then shutting down.
 				close(c)
 			}
-			r.logctx.Debug("dataMsg router shut down")
+			tcLogCtxt.WithFields(log.Fields{
+				"file":     "message_router.go",
+				"function": "run",
+			}).Info("dataMsg router shut down")
 			return
 
 		case msg := <-r.dataChanIn:

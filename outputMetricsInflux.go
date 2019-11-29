@@ -55,7 +55,10 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 	var err error
 	var bp client.BatchPoints
 
-	w.logctx.Debug("Run worker")
+	tcLogCtxt.WithFields(log.Fields{
+		"file":     "outputMetricsInflux.go",
+		"function": "worker",
+	}).Info("Run worker")
 
 	defer m.shutdownSyncPoint.Done()
 
@@ -79,7 +82,10 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 
 		if err != nil {
 			// Wait, and come round again
-			w.logctx.WithError(err).Error("connect to influx node (will retry)")
+			tcLogCtxt.WithError(err).WithFields(log.Fields{
+				"file":     "outputMetricsInflux.go",
+				"function": "worker",
+			}).Error("connect to influx node failed (retry")
 			time.Sleep(
 				time.Duration(metricsInfluxWaitToReconnectSeconds) * time.Second)
 			continue
@@ -89,7 +95,10 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 		for {
 			msg, ok := <-w.dataChan
 			if !ok {
-				w.logctx.Debug("Closed worker")
+				tcLogCtxt.WithFields(log.Fields{
+					"file":     "outputMetricsInflux.go",
+					"function": "worker",
+				}).Info("Closed worker")
 				influxClient.Close()
 				return
 			}
@@ -133,9 +142,12 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 		//
 		// It might be too noisy to log error here. We may need to
 		// consider dampening and relying on exported metric
-		w.logctx.WithError(err).WithFields(log.Fields{
-			"error_tag": errorTag}).Error(
-			"exit loop handling messages, will reconnect")
+		tcLogCtxt.WithError(err).WithFields(log.Fields{
+			"file":      "outputMetricsInflux.go",
+			"function":  "worker",
+			"error_tag": errorTag,
+		}).Error("exit loop handling messages, will reconnect")
+
 		time.Sleep(
 			time.Duration(metricsInfluxWaitToReconnectSeconds) * time.Second)
 
