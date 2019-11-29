@@ -129,7 +129,10 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				fields[u] = i
 			}
 
-			pt, err := client.NewPoint("interface_stats", tags, fields, time.Unix(data.Timestamp, 0))
+			t := time.Unix(data.Timestamp, 0)
+			fmt.Println(t.UTC())
+
+			pt, err := client.NewPoint("interface_stats", tags, fields, t)
 
 			bp.AddPoint(pt)
 
@@ -138,7 +141,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				errorTag = "failed to write batch point"
 				break
 			}
-			fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, time.Unix(0, data.Timestamp*int64(time.Millisecond)))
+			fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, t)
 			fmt.Printf("Worker: %d, tags:\n %#v \n", w.wkid, tags)
 			fmt.Printf("Worker: %d, field:\n %#v \n", w.wkid, fields)
 		}
