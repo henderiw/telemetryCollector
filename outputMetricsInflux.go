@@ -138,7 +138,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				errorTag = "failed to write batch point"
 				break
 			}
-			fmt.Printf("Worker: %d, processed msg to influxDB \n", w.wkid)
+			fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, time.Unix(0, data.Timestamp*int64(time.Millisecond)))
 		}
 
 		//
