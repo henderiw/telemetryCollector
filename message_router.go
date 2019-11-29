@@ -49,7 +49,10 @@ func (r *dataMsgRouter) handleMsg(msg dMsg, timeout *time.Timer) {
 			// reroute.
 			continue
 		case datamsgRouterDrop:
-			r.logctx.Debug("message router drop")
+			tcLogCtxt.WithFields(log.Fields{
+				"file":     "message_router.go",
+				"function": "run",
+			}).Info("message router drop")
 			return
 		case datamsgRouterSendAndBlock:
 			//
