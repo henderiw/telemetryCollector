@@ -139,6 +139,8 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				break
 			}
 			fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, time.Unix(0, data.Timestamp*int64(time.Millisecond)))
+			fmt.Printf("Worker: %d, tags:\n %#v \n", w.wkid, tags)
+			fmt.Printf("Worker: %d, field:\n %#v \n", w.wkid, fields)
 		}
 
 		//
