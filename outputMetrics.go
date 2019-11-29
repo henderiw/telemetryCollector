@@ -20,14 +20,11 @@ const (
 var metricsTypeMap = map[string]metricsOutputType{
 	"prometheus": metricsTypePrometheus,
 	"influx":     metricsTypeInflux,
-	"file":       metricsTypeFile,
 }
 
 // metricOutput
 type metricsOutput struct {
-	name string
-	//inputSpecFile     string
-	//inputSpec         metricsSpec
+	name              string
 	output            string
 	outputHandler     metricsOutputHandler
 	dataChannelDepth  int
@@ -37,81 +34,21 @@ type metricsOutput struct {
 	shutdownChan      chan struct{}
 }
 
-type metricsSpec struct {
-	specSet []metricsSpecForBasepath
-	specDB  map[string]*metricsSpecNode
-	//stats   *statRecordTable
-}
-
-type metricsSpecForBasepath struct {
-	Path    string
-	Updates *metricsSpecNode
-}
-
 type metricsOutputHandler interface {
 	setupWorkers(module *metricsOutput)
-	//buildMetric(tags []metricsAtom, sensor metricsAtom, ts uint64,
-	//	context metricsOutputContext)
-	//flushMetric(tags []metricsAtom, ts uint64, context metricsOutputContext)
-	//adaptSensorName(name string) string
-	//adaptTagName(name string) string
-}
-
-// Structures used to collect metrics and tags.
-type metricsAtom struct {
-	key string
-	val interface{}
-}
-
-type metricsSpecNode struct {
-	Name  string
-	Tag   bool
-	Track bool
 }
 
 func metricOutputCapabilityNew() outputCapability {
 	return &metricsOutput{}
 }
 
-// Setup a tap output entity
+// Setup a metric output entity
 func (m *metricsOutput) initialize(name string, ec entityConfig) (
 	chan<- dMsg, chan<- *cMsg, error) {
 
 	var err error
 
 	m.name = name
-
-	/*
-
-		m.inputSpecFile, err = ec.config.GetString(name, "metricsInputFileSpec")
-		if err != nil {
-			tcLogCtxt.WithError(err).WithFields(
-				log.Fields{
-					"name": name,
-				}).Error("metrics initialize: metricsInputFileSpec is required")
-			return nil, nil, err
-		}
-
-		specByteStream, err := ioutil.ReadFile(m.inputSpecFile)
-		if err != nil {
-			tcLogCtxt.WithError(err).WithFields(
-				log.Fields{
-					"name": name,
-				}).Error("metrics initialize: metricsInputFileSpec error reading file")
-			return nil, nil, err
-		}
-
-		err = json.Unmarshal(specByteStream, &m.inputSpec.specSet)
-		if err != nil {
-			tcLogCtxt.WithError(err).WithFields(
-				log.Fields{
-					"name": name,
-					"file": m.inputSpecFile,
-				}).Error("metrics initialize: error parsing JSON metric spec")
-			return nil, nil, err
-
-		}
-	*/
 
 	m.output, err = ec.config.GetString(name, "output")
 	if err != nil {
@@ -144,20 +81,6 @@ func (m *metricsOutput) initialize(name string, ec entityConfig) (
 		if err != nil {
 			return nil, nil, err
 		}
-		/*
-			case metricsTypeInflux:
-				m.outputHandler, err = metricsInfluxNew(name, ec)
-				if err != nil {
-					//
-					// Errors logged in called function
-					return nil, nil, err
-				}
-			case metricsTypeFile:
-				m.outputHandler = testOutputHandler
-				if m.outputHandler == nil {
-					return nil, nil, fmt.Errorf("test metric extraction unset")
-				}
-		*/
 	case metricsTypeInflux:
 		m.outputHandler, err = metricsInfluxNew(name, ec)
 		if err != nil {
@@ -172,16 +95,6 @@ func (m *metricsOutput) initialize(name string, ec entityConfig) (
 		return nil, nil, err
 
 	}
-	/*
-		err = m.buildSpecDB()
-		if err != nil {
-			tcLogCtxt.WithError(err).WithFields(
-				log.Fields{
-					"name": name,
-				}).Error("metrics initialize: building Spec DB failed")
-			return nil, nil, err
-		}
-	*/
 
 	m.dataChannelDepth, err = ec.config.GetInt(name, "datachanneldepth")
 	if err != nil {

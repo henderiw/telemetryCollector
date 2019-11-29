@@ -138,6 +138,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				errorTag = "failed to write batch point"
 				break
 			}
+			fmt.Printf("Worker: %d, processed msg to influxDB", w.wkid)
 		}
 
 		//
@@ -174,12 +175,13 @@ func (o *metricsInfluxOutputHandler) setupWorkers(m *metricsOutput) {
 
 	tcLogCtxt.WithFields(
 		log.Fields{
-			"metric export":   "influx",
-			"InfluxDB server": o.influxServer,
-			"database":        o.database,
-			"consistency":     o.consistency,
-			"retention":       o.retention,
-			"workers":         o.workers,
+			"metric export":    "influx",
+			"InfluxDB server":  o.influxServer,
+			"database":         o.database,
+			"consistency":      o.consistency,
+			"retention":        o.retention,
+			"workers":          o.workers,
+			"dataChannelDepth": o.dataChannelDepth,
 		}).Info("influxDB setup workers")
 
 	o.router = &dataMsgRouter{
@@ -210,12 +212,6 @@ func (o *metricsInfluxOutputHandler) setupWorkers(m *metricsOutput) {
 		o.router.dataChansOut[i] = make(chan dMsg, o.dataChannelDepth)
 
 		m.shutdownSyncPoint.Add(1)
-		if o.metricsfilename != "" {
-			dumpfilename = fmt.Sprintf(
-				"%s_wkid%d", o.metricsfilename, i)
-		} else {
-			dumpfilename = ""
-		}
 
 		w := &metricsInfluxOutputWorker{
 			influxServer:        o.influxServer,
@@ -300,6 +296,8 @@ func metricsInfluxNew(name string, ec entityConfig) (metricsOutputHandler, error
 	} else if workers > runtime.GOMAXPROCS(-1) {
 		workers = runtime.GOMAXPROCS(-1)
 	}
+
+	dataChannelDepth, _ := ec.config.GetInt(name, "dataChannelDepth")
 
 	tcLogCtxt.WithFields(
 		log.Fields{
