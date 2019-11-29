@@ -129,7 +129,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				fields[u] = i
 			}
 
-			t := time.Unix(data.Timestamp, 0)
+			t := time.Unix(0, data.Timestamp)
 			fmt.Println(t.UTC())
 
 			pt, err := client.NewPoint("interface_stats", tags, fields, t)
