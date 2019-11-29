@@ -316,8 +316,9 @@ func main() {
 	tcLog.SetLevel(log.InfoLevel)
 
 	activeOutputCapability := map[string](func() outputCapability){
-		"tap":   tapOutputCapabilityNew,
-		"kafka": kafkaOutputCapabilityNew,
+		"tap":     tapOutputCapabilityNew,
+		"kafka":   kafkaOutputCapabilityNew,
+		"metrics": metricOutputCapabilityNew,
 	}
 
 	// initializes the active input capabilities the telemetry
