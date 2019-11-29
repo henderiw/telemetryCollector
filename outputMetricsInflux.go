@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"time"
 
 	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
@@ -121,7 +122,11 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 
 			fields := make(map[string]interface{}, len(data.Updates))
 			for u, v := range data.Updates {
-				fields[u] = v.(int64)
+				i, err := strconv.ParseInt(v.(string), 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				fields[u] = i
 			}
 
 			pt, err := client.NewPoint("interface_stats", tags, fields, time.Now())
