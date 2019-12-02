@@ -119,6 +119,7 @@ func (tcm tcMonitor) Collect(ch chan<- prometheus.Metric) {
 
 func tcMonitorInit() {
 	// Initialise TC monitoring and setup TC monitor
+
 	tc.monitor = &tcMonitor{
 		NumGoroutine: prometheus.NewDesc(
 			"goroutines",
@@ -126,7 +127,7 @@ func tcMonitorInit() {
 			nil, nil),
 		NumCPU: prometheus.NewDesc(
 			"cpus",
-			"available CPUs for pipeline",
+			"available CPUs for telemetryCollector",
 			nil, nil),
 		MemAlloc: prometheus.NewDesc(
 			"alloc",
@@ -170,11 +171,6 @@ func tcMonitorInit() {
 }
 
 func tcMonitorStart(ec entityConfig) {
-	path, err := ec.config.GetString("default", "prometheusResource")
-	if err != nil {
-		tcLogCtxt.Info("TC monitor: not configured")
-		return
-	}
 
 	server, err := ec.config.GetString("default", "prometheusServer")
 	if err != nil {
@@ -182,12 +178,12 @@ func tcMonitorStart(ec entityConfig) {
 	}
 
 	tcLogCtxt.WithFields(log.Fields{
-		"resource": path,
+		"resource": "/metrics",
 		"name":     "default",
 		"server":   server,
 	}).Info("TC monitor: serving TC metrics to prometheus")
 
-	http.Handle(path, promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 	err = http.ListenAndServe(server, nil)
 	tcLogCtxt.WithError(err).Error("TC monitor: stop serving metrics")
 

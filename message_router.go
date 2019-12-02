@@ -40,13 +40,10 @@ func (r *dataMsgRouter) handleMsg(msg dMsg, timeout *time.Timer) {
 			return
 		}
 
-		//
-		// Channel backed up and we're about to block. Check whether to block
-		// or drop.
+		// Channel backed up and we're about to block. Check whether to block or drop
 		switch r.handleCongested(msg, i, outChanIndex) {
 		case datamsgRouterReroute:
-			// Do be careful when rerouting to make sure that you do indeed
-			// reroute.
+			// Do be careful when rerouting to make sure that you do indeed reroute
 			continue
 		case datamsgRouterDrop:
 			tcLogCtxt.WithFields(log.Fields{
@@ -55,19 +52,17 @@ func (r *dataMsgRouter) handleMsg(msg dMsg, timeout *time.Timer) {
 			}).Info("message router drop")
 			return
 		case datamsgRouterSendAndBlock:
-			//
+
 			// We are going to send and block, or timeout.
 			timeout.Reset(r.timeout)
 			select {
 			case r.dataChansOut[outChanIndex] <- msg:
-				//
 				// Message shipped. Clean out timer, and get out.
 				if !timeout.Stop() {
 					<-timeout.C
 				}
 				return
 			case <-timeout.C:
-				//
 				// Let go round one more time.
 			}
 		}

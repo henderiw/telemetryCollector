@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
 	client "github.com/influxdata/influxdb1-client/v2"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -328,4 +329,33 @@ func metricsInfluxNew(name string, ec entityConfig) (metricsOutputHandler, error
 	}
 
 	return out, nil
+}
+
+type influxPromMonitor struct {
+	InfluxPromTest *prometheus.Desc
+}
+
+func (im influxPromMonitor) Describe(ch chan<- *prometheus.Desc) {
+	ch <- im.InfluxPromTest
+}
+
+func (im influxPromMonitor) Collect(ch chan<- prometheus.Metric) {
+	ch <- prometheus.MustNewConstMetric(
+		im.InfluxPromTest,
+		prometheus.GaugeValue,
+		float64(12345678),
+	)
+}
+
+func init() {
+	// Initialise monitoring and setup monitor
+
+	influxMonitor := &influxPromMonitor{
+		InfluxPromTest: prometheus.NewDesc(
+			"Influx test",
+			"Influx test metric for prometheus",
+			nil, nil),
+	}
+	prometheus.MustRegister(influxMonitor)
+
 }
