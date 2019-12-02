@@ -352,7 +352,7 @@ func init() {
 
 	influxMonitor := &influxPromMonitor{
 		InfluxPromTest: prometheus.NewDesc(
-			"Influx test",
+			"influx_test",
 			"Influx test metric for prometheus",
 			nil, nil),
 	}
