@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,28 +125,34 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 			//fmt.Printf("Length updates: %d\n", len(data.Updates))
 
 			fields := make(map[string]interface{}, len(data.Updates))
-			for u, v := range data.Updates {
-				//fmt.Printf("U: %#v\n", u)
-				//fmt.Printf("V: %#v\n", v)
-				//i, err := strconv.ParseInt(v.(string), 10, 64)
-				//if err != nil {
-				//	i = v
-				//}
-				fields[u] = v
-			}
-
 			t := time.Unix(0, data.Timestamp)
 			fmt.Println(t.UTC())
 			var pt *client.Point
 
 			if strings.Contains(data.Path, "route-table/ipv4-unicast") {
 				fmt.Printf("IPV4 ROUTE TABLE INFO: %s \n", data.Path)
+				for u, v := range data.Updates {
+					fields[u] = v
+				}
 				pt, err = client.NewPoint("route_table_v4", tags, fields, t)
 			} else if strings.Contains(data.Path, "route-table/ipv6-unicast") {
 				fmt.Printf("IPV6 ROUTE TABLE INFO: %s \n", data.Path)
+				for u, v := range data.Updates {
+					fields[u] = v
+				}
 				pt, err = client.NewPoint("route_table_v6", tags, fields, t)
 			} else if strings.Contains(data.Path, "interface") {
 				fmt.Printf("INTERFACE INFO: %s \n", data.Path)
+				for u, v := range data.Updates {
+					i, err := strconv.ParseInt(v.(string), 10, 64)
+					if err != nil {
+						tcLogCtxt.WithError(err).WithFields(log.Fields{
+							"file":     "outputMetricsInflux.go",
+							"function": "worker",
+						}).Error("Cannot convert string to integer for interface_stats")
+					}
+					fields[u] = i
+				}
 				pt, err = client.NewPoint("interface_stats", tags, fields, t)
 			} else {
 				return
