@@ -123,6 +123,8 @@ func (cap *grpcInputCapability) initialize(name string, ec entityConfig, dChans 
 	// listen for control requests.
 	cChan := make(chan *cMsg)
 
+	fmt.Printf("SUBSCRIPTIONS: %s\n", newSubscriptions)
+
 	grpcRemoteServer := &grpcRemoteServer{
 		name:             name,
 		server:           serverSockAddr,
