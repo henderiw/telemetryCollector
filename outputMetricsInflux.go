@@ -132,13 +132,27 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 			if strings.Contains(data.Path, "route-table/ipv4-unicast") {
 				fmt.Printf("IPV4 ROUTE TABLE INFO: %s \n", data.Path)
 				for u, v := range data.Updates {
-					fields[u] = v
+					i, err := strconv.ParseInt(v.(string), 10, 64)
+					if err != nil {
+						tcLogCtxt.WithError(err).WithFields(log.Fields{
+							"file":     "outputMetricsInflux.go",
+							"function": "worker",
+						}).Error("Cannot convert string to integer for route_table_v4")
+					}
+					fields[u] = i
 				}
 				pt, err = client.NewPoint("route_table_v4", tags, fields, t)
 			} else if strings.Contains(data.Path, "route-table/ipv6-unicast") {
 				fmt.Printf("IPV6 ROUTE TABLE INFO: %s \n", data.Path)
 				for u, v := range data.Updates {
-					fields[u] = v
+					i, err := strconv.ParseInt(v.(string), 10, 64)
+					if err != nil {
+						tcLogCtxt.WithError(err).WithFields(log.Fields{
+							"file":     "outputMetricsInflux.go",
+							"function": "worker",
+						}).Error("Cannot convert string to integer for route_table_v6")
+					}
+					fields[u] = i
 				}
 				pt, err = client.NewPoint("route_table_v6", tags, fields, t)
 			} else if strings.Contains(data.Path, "interface") {
