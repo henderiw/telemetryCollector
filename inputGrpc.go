@@ -99,7 +99,7 @@ func (cap *grpcInputCapability) initialize(name string, ec entityConfig, dChans 
 		for _, subscription := range subscriptions {
 			newSubscriptions = append(newSubscriptions, strings.TrimSpace(subscription))
 		}
-		//fmt.Printf("Subscriprions: %#v \n", newSubscriptions)
+		fmt.Printf("Subscriprions: %#v \n", newSubscriptions)
 
 	} else {
 		// target information missing in the entity section of the config file

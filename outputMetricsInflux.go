@@ -121,6 +121,8 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				"path": data.Path,
 			}
 
+			fmt.Printf("Length updates: %d\n", len(data.Updates))
+
 			fields := make(map[string]interface{}, len(data.Updates))
 			for u, v := range data.Updates {
 				i, err := strconv.ParseInt(v.(string), 10, 64)
