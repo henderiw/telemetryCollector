@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"strings"
 	"time"
 
 	_ "github.com/influxdata/influxdb1-client" // this is important because of the bug in go mod
@@ -135,8 +136,20 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 
 			t := time.Unix(0, data.Timestamp)
 			fmt.Println(t.UTC())
+			var pt *client.Point
 
-			pt, err := client.NewPoint("interface_stats", tags, fields, t)
+			if strings.Contains(data.Path, "route-table/ipv4-unicast") {
+				fmt.Printf("IPV4 ROUTE TABLE INFO: %s \n", data.Path)
+				pt, err = client.NewPoint("route_table_v4", tags, fields, t)
+			} else if strings.Contains(data.Path, "route-table/ipv6-unicast") {
+				fmt.Printf("IPV6 ROUTE TABLE INFO: %s \n", data.Path)
+				pt, err = client.NewPoint("route_table_v6", tags, fields, t)
+			} else if strings.Contains(data.Path, "interface") {
+				fmt.Printf("INTERFACE INFO: %s \n", data.Path)
+				pt, err = client.NewPoint("interface_stats", tags, fields, t)
+			} else {
+				return
+			}
 
 			bp.AddPoint(pt)
 
