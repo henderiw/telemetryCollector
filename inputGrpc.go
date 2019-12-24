@@ -615,8 +615,8 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 					"reqID":        reqID,
 				}).Error("Subscription parsing failed")
 			}
-			fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
-			fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
+			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
+			//fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
 
 			if dMsgs != nil {
 				for _, dMsg := range dMsgs {
@@ -707,24 +707,24 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 
 	switch resp := resp.Response.(type) {
 	case *pb.SubscribeResponse_Update:
-		fmt.Println("##############################################")
-		fmt.Println("SubscribeResponse_Update")
+		//fmt.Println("##############################################")
+		//fmt.Println("SubscribeResponse_Update")
 		notif := resp.Update
 		msgBody.Timestamp = notif.Timestamp
-		fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
-		fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
+		//fmt.Printf("notif.timestamp : %#v \n", notif.Timestamp)
+		//fmt.Printf("notif.Prefix : %#v \n", notif.Prefix)
 		if notif.Prefix != nil {
 			msgBody.Path = "/" + joinPath(notif.Prefix, "full")
-			fmt.Printf("Path : %s \n", msgBody.Path)
+			//fmt.Printf("Path : %s \n", msgBody.Path)
 		}
-		fmt.Printf("notif.Update length : %d \n", len(notif.Update))
+		//fmt.Printf("notif.Update length : %d \n", len(notif.Update))
 		if len(notif.Update) != 0 {
-			fmt.Println("##############################################")
+			//fmt.Println("##############################################")
 			updates := make(map[string]interface{}, len(notif.Update))
 			for _, update := range notif.Update {
-				fmt.Println("##############################################")
-				fmt.Printf("Update : %s \n", update)
-				fmt.Printf("Update path : %s \n", joinPath(update.Path, "full"))
+				//fmt.Println("##############################################")
+				//fmt.Printf("Update : %s \n", update)
+				//fmt.Printf("Update path : %s \n", joinPath(update.Path, "full"))
 				//c, err := convertUpdate(update)
 				//if err != nil {
 				//	return "", err
@@ -756,12 +756,12 @@ func subscribeResponseParsing(resp *pb.SubscribeResponse, origin string) ([]dMsg
 		msgData.DMsgType = "notification update"
 		msgData.DMsgBody = *msgBody
 	case *pb.SubscribeResponse_SyncResponse:
-		fmt.Println("##############################################")
-		fmt.Println("SubscribeResponse_SyncResponse")
+		//fmt.Println("##############################################")
+		//fmt.Println("SubscribeResponse_SyncResponse")
 		msgData.DMsgType = "syncResponse"
 		msgData.DMsgBody.SyncResponse = resp.SyncResponse
 	default:
-		fmt.Printf("Response type: %#v \n", resp)
+		//fmt.Printf("Response type: %#v \n", resp)
 		return dMs, fmt.Errorf("Unknown type of response: %T: %s", resp, resp)
 	}
 	//js, err := json.MarshalIndent(m, "", "  ")
