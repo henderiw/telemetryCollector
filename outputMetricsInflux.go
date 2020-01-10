@@ -126,11 +126,11 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 
 			fields := make(map[string]interface{}, len(data.Updates))
 			t := time.Unix(0, data.Timestamp)
-			fmt.Println(t.UTC())
+			//fmt.Println(t.UTC())
 			var pt *client.Point
 
 			if strings.Contains(data.Path, "route-table/ipv4-unicast") {
-				fmt.Printf("IPV4 ROUTE TABLE INFO: %s \n", data.Path)
+				//fmt.Printf("IPV4 ROUTE TABLE INFO: %s \n", data.Path)
 				for u, v := range data.Updates {
 					i, err := strconv.ParseInt(v.(string), 10, 64)
 					if err != nil {
@@ -143,7 +143,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				}
 				pt, err = client.NewPoint("route_table_v4", tags, fields, t)
 			} else if strings.Contains(data.Path, "route-table/ipv6-unicast") {
-				fmt.Printf("IPV6 ROUTE TABLE INFO: %s \n", data.Path)
+				//fmt.Printf("IPV6 ROUTE TABLE INFO: %s \n", data.Path)
 				for u, v := range data.Updates {
 					i, err := strconv.ParseInt(v.(string), 10, 64)
 					if err != nil {
@@ -156,7 +156,7 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				}
 				pt, err = client.NewPoint("route_table_v6", tags, fields, t)
 			} else if strings.Contains(data.Path, "interface") {
-				fmt.Printf("INTERFACE INFO: %s \n", data.Path)
+				//fmt.Printf("INTERFACE INFO: %s \n", data.Path)
 				for u, v := range data.Updates {
 					i, err := strconv.ParseInt(v.(string), 10, 64)
 					if err != nil {
@@ -179,9 +179,9 @@ func (w *metricsInfluxOutputWorker) worker(m *metricsOutput) {
 				errorTag = "failed to write batch point"
 				break
 			}
-			fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, t)
-			fmt.Printf("Worker: %d, tags:\n %#v \n", w.wkid, tags)
-			fmt.Printf("Worker: %d, field:\n %#v \n", w.wkid, fields)
+			//fmt.Printf("Worker: %d, processed msg to influxDB with tstp: %s \n", w.wkid, t)
+			//fmt.Printf("Worker: %d, tags:\n %#v \n", w.wkid, tags)
+			//fmt.Printf("Worker: %d, field:\n %#v \n", w.wkid, fields)
 		}
 
 		//

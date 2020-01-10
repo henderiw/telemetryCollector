@@ -617,6 +617,12 @@ func singleSubscription(ctx context.Context, s *grpcRemoteServer, sub string, re
 			}
 			//fmt.Printf("subRspJSON(%s) subscription(%s): %#v \n", s.name, sub, dMsgs)
 			//fmt.Printf("subRspJSON(%s) subscription(%s): \n", s.name, sub)
+			tcLogCtxt.WithFields(log.Fields{
+				"file":         "grpcInput.go",
+				"function":     "singleSubscription",
+				"subscription": sub,
+				"Origin":       s.name,
+			}).Info("Subscription parsed")
 
 			if dMsgs != nil {
 				for _, dMsg := range dMsgs {
